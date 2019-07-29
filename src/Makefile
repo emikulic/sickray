@@ -21,7 +21,7 @@ sinclude $(DEPS)
 $(OBJS): %.o: %.cc
 	$(CCACHE) $(CXX) $(CXXFLAGS) $(MKDEP) -c -o $@ $<
 
-01_sphere: 01_sphere.o show.o
+01_sphere: 01_sphere.o show.o writepng.o
 	$(CXX) $(CFLAGS) $^ -lX11 -o $@
 
 random_test: random_test.o
@@ -32,4 +32,4 @@ show_test: show_test.o show.o
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) 01_sphere random_test show_test
+	rm -f $(DEPS) $(OBJS) 01_sphere 01_sphere.png random_test show_test

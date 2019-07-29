@@ -5,10 +5,11 @@
 #include "random.h"
 #include "ray.h"
 #include "show.h"
+#include "writepng.h"
 
 namespace {
 
-constexpr int kWidth = 640;
+constexpr int kWidth = 800;
 constexpr int kHeight = 480;
 constexpr int kSamples = 8;  // per pixel.
 constexpr int kMaxLevel = 100;
@@ -126,5 +127,6 @@ image Render() {
 
 int main() {
   image img = Render();
+  writepng(img, "01_sphere.png");
   show(img);
 }
