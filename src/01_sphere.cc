@@ -12,7 +12,7 @@ constexpr int kWidth = 640;
 constexpr int kHeight = 480;
 constexpr int kSamples = 8;  // per pixel.
 
-constexpr vec3 kCamera{0, 1.5, 2};
+constexpr vec3 kCamera{0, .8, 2};
 constexpr vec3 kLookAt{.5, 1, 0};
 constexpr sphere kSphere{vec3{0, 1, 0}, 1.};
 constexpr ground kGround{0};
@@ -44,6 +44,12 @@ vec3 ShadeGround(const ray& r, double dist) {
   vec3 n = kGround.normal(p);
   double shade = dot(n, normalize(kLightPos - p));
   shade = max(shade, 0.);
+
+  // Shadow.
+  ray s{p, kLightPos - p};
+  const double sd = kSphere.intersect(s);
+  if (sd > 0 && sd < 1) shade = 0;  // In shadow.
+
   bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
   vec3 c{.5, .5, .5};
   if (check) c *= .5;
