@@ -5,7 +5,7 @@ CXXFLAGS=-std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
 # While compiling, produce a .d (depends) file.
 MKDEP=-MMD -MT "$(<:.cc=.o)"
 
-all: 01_sphere random_test show_test
+all: 01_sphere disc_test random_test show_test
 .PHONY: all
 
 # Automatically find sources.
@@ -24,6 +24,9 @@ $(OBJS): %.o: %.cc
 01_sphere: 01_sphere.o show.o writepng.o
 	$(CXX) $(CFLAGS) $^ -lX11 -o $@
 
+disc_test: disc_test.o show.o
+	$(CXX) $(CFLAGS) $^ -lX11 -o $@
+
 random_test: random_test.o
 	$(CXX) $(CFLAGS) $^ -o $@
 
@@ -32,4 +35,5 @@ show_test: show_test.o show.o
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) 01_sphere 01_sphere.png random_test show_test
+	rm -f $(DEPS) $(OBJS) 01_sphere 01_sphere.png disc_test random_test \
+		show_test

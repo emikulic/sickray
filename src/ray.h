@@ -24,7 +24,9 @@ constexpr T fract(T f) {
 
 struct vec2 {
  public:
+  vec2 operator*(double d) const { return vec2{x * d, y * d}; }
   vec2 operator/(double d) const { return vec2{x / d, y / d}; }
+  vec2 operator+(const vec2& v) const { return vec2{x + v.x, y + v.y}; }
   vec2 operator-(const vec2& v) const { return vec2{x - v.x, y - v.y}; }
   vec2& operator+=(const vec2& v) {
     x += v.x;
@@ -167,6 +169,14 @@ constexpr uint8_t from_float(float linear, float gamma = 2.2) {
   float out = powf(linear, 1. / gamma);
   out = clip(out);
   return static_cast<uint8_t>(out * 255. + .5);
+}
+
+// Convert uniform random rectangle [0,1) to uniform random unit circle.
+vec2 uniform_disc(const vec2& v) {
+  // http://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations.html#SamplingaUnitDisk
+  const double r = sqrt(v.x);
+  const double a = 2 * M_PI * v.y;
+  return vec2{r * cos(a), r * sin(a)};
 }
 
 timespec Now() {

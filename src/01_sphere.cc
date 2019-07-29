@@ -98,8 +98,8 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
 
   // Focal blur: jitter camera position.
   vec2 blur{rng.rand(), rng.rand()};
-  vec3 camera = kCamera + (look.right * kAperture * blur.x) +
-                (look.up * kAperture * blur.y);
+  blur = uniform_disc(blur) * kAperture;
+  vec3 camera = kCamera + (look.right * blur.x) + (look.up * blur.y);
   return Trace(ray{camera, proj - camera}, /*level=*/0);
 }
 
