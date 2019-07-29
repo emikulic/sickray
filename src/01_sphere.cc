@@ -15,6 +15,9 @@ constexpr int kMaxLevel = 100;
 
 constexpr vec3 kCamera{0, .8, 2};
 constexpr vec3 kLookAt{.5, 1, 0};
+constexpr vec3 kFocus{0, 0, .5};
+constexpr double kAperture = 1. / 24;  // Amount of focal blur.
+
 constexpr sphere kSphere{vec3{0, 1, 0}, 1.};
 constexpr ground kGround{0};
 constexpr vec3 kLightPos{5, 5, 5};
@@ -87,10 +90,16 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
   // Invert Y.
   xy.y = -xy.y;
 
-  // Camera ray.
-  const vec3 dir = look.fwd + look.right * xy.x + look.up * xy.y;
-  const ray r{kCamera, dir};
-  return Trace(r, 0);
+  // Point on projection plane.
+  double focal_dist = length(kFocus - kCamera);
+  vec3 dir = look.fwd + look.right * xy.x + look.up * xy.y;
+  vec3 proj = kCamera + focal_dist * normalize(dir);
+
+  // Focal blur: jitter camera position.
+  vec2 blur{rng.rand(), rng.rand()};
+  vec3 camera = kCamera + (look.right * kAperture * blur.x) +
+                (look.up * kAperture * blur.y);
+  return Trace(ray{camera, proj - camera}, /*level=*/0);
 }
 
 image Render() {
