@@ -61,12 +61,14 @@ vec3 ShadeGround(const ray& r, double dist) {
   vec3 p = r.p(dist);
   vec3 n = kGround.normal(p);
   double shade = dot(n, normalize(kLightPos - p));
-  shade = max(shade, 0.);
+  shade = max(shade, 0.) * .9;
 
   // Shadow.
   ray s{p, kLightPos - p};
   const double sd = kSphere.intersect(s);
   if (sd > 0 && sd < 1) shade = 0;  // In shadow.
+  // Ambient.
+  shade += .02;
 
   bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
   vec3 c{.5, .5, .5};
