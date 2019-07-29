@@ -30,13 +30,13 @@ bool Before(double a, double b) {
   return false;
 }
 
-vec3 Trace(const ray& r, int level);
+vec3 Trace(Random& rng, const ray& r, int level);
 
 vec3 ShadeSky(const ray& r) {
   return vec3{.1, .2, .3} + r.dir.y * vec3{.2, .2, .2};
 }
 
-vec3 ShadeSphere(const ray& r, double dist, int level) {
+vec3 ShadeSphere(Random& rng, const ray& r, double dist, int level) {
   vec3 p = r.p(dist);
   vec3 n = kSphere.normal(p);
   double shade = dot(n, normalize(kLightPos - p));
@@ -46,8 +46,12 @@ vec3 ShadeSphere(const ray& r, double dist, int level) {
 
   // Reflection.
   if (level < kMaxLevel) {
-    ray refray{p, reflect(p - r.start, n)};
-    color += .5 * metal * Trace(refray, level + 1);
+    // Perturb the normal to blur the reflection.
+    vec3 n2 =
+        n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) * .03;
+    n2 = normalize(n2);
+    ray refray{p, reflect(p - r.start, n2)};
+    color += .5 * metal * Trace(rng, refray, level + 1);
   }
 
   return color;
@@ -71,12 +75,12 @@ vec3 ShadeGround(const ray& r, double dist) {
 }
 
 // Returns color.
-vec3 Trace(const ray& r, int level) {
+vec3 Trace(Random& rng, const ray& r, int level) {
   double sdist = kSphere.intersect(r);
   double gdist = kGround.intersect(r);
 
   if (sdist < 0 && gdist < 0) return ShadeSky(r);
-  if (Before(sdist, gdist)) return ShadeSphere(r, sdist, level);
+  if (Before(sdist, gdist)) return ShadeSphere(rng, r, sdist, level);
   return ShadeGround(r, gdist);
 }
 
@@ -100,7 +104,7 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
   vec2 blur{rng.rand(), rng.rand()};
   blur = uniform_disc(blur) * kAperture;
   vec3 camera = kCamera + (look.right * blur.x) + (look.up * blur.y);
-  return Trace(ray{camera, proj - camera}, /*level=*/0);
+  return Trace(rng, ray{camera, proj - camera}, /*level=*/0);
 }
 
 image Render() {
