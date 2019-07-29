@@ -9,6 +9,17 @@
 
 namespace {
 constexpr double sqr(double d) { return d * d; }
+
+template <typename T>
+constexpr T max(T a, T b) {
+  return (a > b) ? a : b;
+}
+
+template <typename T>
+constexpr T fract(T f) {
+  return f - floor(f);
+}
+
 }  // namespace
 
 struct vec2 {
@@ -42,6 +53,15 @@ struct vec3 {
     return *this;
   }
 
+  vec3& operator*=(double d) {
+    x *= d;
+    y *= d;
+    z *= d;
+    return *this;
+  }
+
+  friend vec3 operator*(double d, const vec3& v) { return v * d; }
+
   friend vec3 cross(const vec3& a, const vec3& b) {
     return vec3{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
                 a.x * b.y - a.y * b.x};
@@ -67,7 +87,7 @@ struct ray {
 
 struct sphere {
  public:
-  // Resturns the distance along the ray.
+  // Returns the distance along the ray.
   double intersect(const ray& r) const {
     vec3 ec = r.start - center;
     double a = dot(r.dir, r.dir);
@@ -83,6 +103,19 @@ struct sphere {
 
   vec3 center;
   double radius;
+};
+
+struct ground {
+ public:
+  // Returns the distance along the ray.
+  double intersect(const ray& r) const {
+    return (height - r.start.y) / r.dir.y;
+  }
+
+  // Returns the normal vector at p.
+  vec3 normal(const vec3& p) const { return vec3{0, 1, 0}; }
+
+  double height;
 };
 
 class image {
