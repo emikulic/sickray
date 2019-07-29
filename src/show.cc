@@ -1,8 +1,7 @@
 // Copyright (c) 2013 Emil Mikulic <emikulic@gmail.com>
 // Show an image using xlib.
-#include "show.h"
-
 #include <cstdio>
+#include <memory>
 
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
@@ -10,6 +9,9 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <err.h>
+
+#include "ray.h"
+#include "show.h"
 
 namespace {
 
@@ -193,10 +195,28 @@ class Viewer {
 
   Viewer(const Viewer&) = delete;
 };
-
 }
 
 // data is 8bpp BGRA format.
 void show(int width, int height, const void* data) {
   Viewer v(width, height, data);
+}
+
+void show(const image& img) {
+  const int w = img.width_;
+  const int h = img.height_;
+  std::unique_ptr<uint8_t[]> data(new uint8_t[w * h * 4]);
+
+  const vec3* src = img.data_.get();
+  uint8_t* dst = data.get();
+  for (int y = 0; y < h; ++y)
+    for (int x = 0; x < w; ++x) {
+      dst[0] = from_float(src->z);
+      dst[1] = from_float(src->y);
+      dst[2] = from_float(src->x);
+      dst += 4;
+      src += 1;
+    }
+
+  show(w, h, data.get());
 }
