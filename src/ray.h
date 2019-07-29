@@ -43,6 +43,12 @@ struct vec3 {
   vec3 operator-(const vec3& v) const {
     return vec3{x - v.x, y - v.y, z - v.z};
   }
+
+  // Elementwise.
+  vec3 operator*(const vec3& v) const {
+    return vec3{x * v.x, y * v.y, z * v.z};
+  }
+
   vec3 operator*(double d) const { return vec3{x * d, y * d, z * d}; }
   vec3 operator/(double d) const { return vec3{x / d, y / d, z / d}; }
 

@@ -37,14 +37,13 @@ vec3 ShadeSphere(const ray& r, double dist, int level) {
   vec3 n = kSphere.normal(p);
   double shade = dot(n, normalize(kLightPos - p));
   shade = max(shade, 0.);
-  constexpr vec3 diffuse{.6, .7, .8};
-  constexpr vec3 ambient{.01, .01, .01};
-  vec3 color = ambient + diffuse * shade;
+  constexpr vec3 metal{.6, .7, .8};
+  vec3 color = metal * shade * .5;
 
   // Reflection.
   if (level < kMaxLevel) {
     ray refray{p, reflect(p - r.start, n)};
-    color += .5 * Trace(refray, level + 1);
+    color += .5 * metal * Trace(refray, level + 1);
   }
 
   return color;
