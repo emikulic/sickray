@@ -2,6 +2,7 @@
 // Right-handed coordinates.
 #include <iostream>
 
+#include "random.h"
 #include "ray.h"
 #include "show.h"
 
@@ -9,6 +10,7 @@ namespace {
 
 constexpr int kWidth = 640;
 constexpr int kHeight = 480;
+constexpr int kSamples = 8;  // per pixel.
 
 constexpr vec3 kCamera{0, 2, 3};
 constexpr vec3 kLookAt{0, 1, 0};
@@ -30,14 +32,14 @@ vec3 Trace(const ray& r) {
 }
 
 // Returns color.
-vec3 RenderPixel(vec2 xy) {
+vec3 RenderPixel(Random& rng, vec2 xy) {
   // LookAt vectors.
   const vec3 fwd = normalize(kLookAt - kCamera);
   const vec3 right = normalize(cross(fwd, vec3{0, 1, 0}));
   const vec3 up = cross(right, fwd);  // Unit length.
 
-  // Ray through center of pixel.
-  xy += vec2{.5, .5};
+  // Antialiasing: jitter position within pixel.
+  xy += vec2{rng.rand(), rng.rand()};
   // Map to [-aspect, +aspect] and [-1, +1].
   xy = (xy - vec2{kWidth, kHeight} / 2.) / (kHeight / 2.);
   // Invert Y.
@@ -51,12 +53,17 @@ vec3 RenderPixel(vec2 xy) {
 }
 
 image Render() {
+  Random rng(0, 0, 0, 1);
   image out(kWidth, kHeight);
   vec3* ptr = out.data_.get();
   timespec t0 = Now();
   for (int y = 0; y < kHeight; ++y) {
     for (int x = 0; x < kWidth; ++x) {
-      *ptr = RenderPixel(vec2{x, y});
+      vec3 color{0, 0, 0};
+      for (int i = 0; i < kSamples; ++i) {
+        color += RenderPixel(rng, vec2{x, y});
+      }
+      *ptr = color / kSamples;
       ++ptr;
     }
   }

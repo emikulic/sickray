@@ -35,6 +35,13 @@ struct vec3 {
   vec3 operator*(double d) const { return vec3{x * d, y * d, z * d}; }
   vec3 operator/(double d) const { return vec3{x / d, y / d, z / d}; }
 
+  vec3& operator+=(const vec3& v) {
+    x += v.x;
+    y += v.y;
+    z += v.z;
+    return *this;
+  }
+
   friend vec3 cross(const vec3& a, const vec3& b) {
     return vec3{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
                 a.x * b.y - a.y * b.x};
