@@ -78,6 +78,18 @@ struct vec3 {
   double x, y, z;
 };
 
+struct lookat {
+ public:
+  lookat(const vec3& camera, const vec3& look)
+      : fwd(normalize(look - camera)),
+        right(normalize(cross(fwd, vec3{0, 1, 0}))),
+        up(cross(right, fwd)) {}
+
+  const vec3 fwd;
+  const vec3 right;
+  const vec3 up;
+};
+
 struct ray {
  public:
   vec3 p(double dist) const { return start + dir * dist; }

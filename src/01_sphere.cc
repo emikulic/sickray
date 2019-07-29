@@ -68,10 +68,7 @@ vec3 Trace(const ray& r) {
 
 // Returns color.
 vec3 RenderPixel(Random& rng, vec2 xy) {
-  // LookAt vectors.
-  const vec3 fwd = normalize(kLookAt - kCamera);
-  const vec3 right = normalize(cross(fwd, vec3{0, 1, 0}));
-  const vec3 up = cross(right, fwd);  // Unit length.
+  const lookat look(kCamera, kLookAt);
 
   // Antialiasing: jitter position within pixel.
   xy += vec2{rng.rand(), rng.rand()};
@@ -81,7 +78,7 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
   xy.y = -xy.y;
 
   // Camera ray.
-  const vec3 dir = fwd + right * xy.x + up * xy.y;
+  const vec3 dir = look.fwd + look.right * xy.x + look.up * xy.y;
   const ray r{kCamera, dir};
   return Trace(r);
 }
