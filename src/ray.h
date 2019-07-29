@@ -46,6 +46,9 @@ struct vec3 {
   vec3 operator*(double d) const { return vec3{x * d, y * d, z * d}; }
   vec3 operator/(double d) const { return vec3{x / d, y / d, z / d}; }
 
+  // Unary.
+  vec3 operator-() const { return vec3{-x, -y, -z}; }
+
   vec3& operator+=(const vec3& v) {
     x += v.x;
     y += v.y;
@@ -74,6 +77,13 @@ struct vec3 {
   friend double length(const vec3& v) { return sqrt(dot(v, v)); }
 
   friend vec3 normalize(const vec3& v) { return v / length(v); }
+
+  // The normal vector must be a unit vector.
+  friend vec3 reflect(const vec3& i, const vec3& n) {
+    vec3 c = n * dot(n, -i);
+    vec3 p = c + i;
+    return c + p;
+  }
 
   double x, y, z;
 };

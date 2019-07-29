@@ -11,6 +11,7 @@ namespace {
 constexpr int kWidth = 640;
 constexpr int kHeight = 480;
 constexpr int kSamples = 8;  // per pixel.
+constexpr int kMaxLevel = 100;
 
 constexpr vec3 kCamera{0, .8, 2};
 constexpr vec3 kLookAt{.5, 1, 0};
@@ -25,18 +26,28 @@ bool Before(double a, double b) {
   return false;
 }
 
+vec3 Trace(const ray& r, int level);
+
 vec3 ShadeSky(const ray& r) {
   return vec3{.1, .2, .3} + r.dir.y * vec3{.2, .2, .2};
 }
 
-vec3 ShadeSphere(const ray& r, double dist) {
+vec3 ShadeSphere(const ray& r, double dist, int level) {
   vec3 p = r.p(dist);
   vec3 n = kSphere.normal(p);
   double shade = dot(n, normalize(kLightPos - p));
   shade = max(shade, 0.);
   constexpr vec3 diffuse{.6, .7, .8};
   constexpr vec3 ambient{.01, .01, .01};
-  return ambient + diffuse * shade;
+  vec3 color = ambient + diffuse * shade;
+
+  // Reflection.
+  if (level < kMaxLevel) {
+    ray refray{p, reflect(p - r.start, n)};
+    color += .5 * Trace(refray, level + 1);
+  }
+
+  return color;
 }
 
 vec3 ShadeGround(const ray& r, double dist) {
@@ -57,12 +68,12 @@ vec3 ShadeGround(const ray& r, double dist) {
 }
 
 // Returns color.
-vec3 Trace(const ray& r) {
+vec3 Trace(const ray& r, int level) {
   double sdist = kSphere.intersect(r);
   double gdist = kGround.intersect(r);
 
   if (sdist < 0 && gdist < 0) return ShadeSky(r);
-  if (Before(sdist, gdist)) return ShadeSphere(r, sdist);
+  if (Before(sdist, gdist)) return ShadeSphere(r, sdist, level);
   return ShadeGround(r, gdist);
 }
 
@@ -80,7 +91,7 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
   // Camera ray.
   const vec3 dir = look.fwd + look.right * xy.x + look.up * xy.y;
   const ray r{kCamera, dir};
-  return Trace(r);
+  return Trace(r, 0);
 }
 
 image Render() {
