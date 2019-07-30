@@ -198,11 +198,11 @@ class Viewer {
 }
 
 // data is 8bpp BGRA format.
-void show(int width, int height, const void* data) {
+void Show(int width, int height, const void* data) {
   Viewer v(width, height, data);
 }
 
-void show(const image& img) {
+void Show(const Image& img) {
   const int w = img.width_;
   const int h = img.height_;
   std::unique_ptr<uint8_t[]> data(new uint8_t[w * h * 4]);
@@ -218,5 +218,5 @@ void show(const image& img) {
       src += 1;
     }
 
-  show(w, h, data.get());
+  Show(w, h, data.get());
 }

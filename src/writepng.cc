@@ -263,7 +263,7 @@ void write_png(const char* filename, uint32_t width, uint32_t height,
 
 }  // namespace
 
-void writepng(const image& img, const char* filename) {
+void Writepng(const Image& img, const char* filename) {
   const int w = img.width_;
   const int h = img.height_;
   std::unique_ptr<uint8_t[]> data(new uint8_t[w * h * 3]);

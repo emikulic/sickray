@@ -103,9 +103,9 @@ struct vec3 {
   double x, y, z;
 };
 
-struct lookat {
+struct Lookat {
  public:
-  lookat(const vec3& camera, const vec3& look)
+  Lookat(const vec3& camera, const vec3& look)
       : fwd(normalize(look - camera)),
         right(normalize(cross(fwd, vec3{0, 1, 0}))),
         up(cross(right, fwd)) {}
@@ -115,17 +115,17 @@ struct lookat {
   const vec3 up;
 };
 
-struct ray {
+struct Ray {
  public:
   vec3 p(double dist) const { return start + dir * dist; }
 
   vec3 start, dir;
 };
 
-struct sphere {
+struct Sphere {
  public:
   // Returns the distance along the ray.
-  double intersect(const ray& r) const {
+  double intersect(const Ray& r) const {
     vec3 ec = r.start - center;
     double a = dot(r.dir, r.dir);
     double b = 2. * dot(r.dir, ec);
@@ -142,10 +142,10 @@ struct sphere {
   double radius;
 };
 
-struct ground {
+struct Ground {
  public:
   // Returns the distance along the ray.
-  double intersect(const ray& r) const {
+  double intersect(const Ray& r) const {
     return (height - r.start.y) / r.dir.y;
   }
 
@@ -155,9 +155,9 @@ struct ground {
   double height;
 };
 
-class image {
+class Image {
  public:
-  image(int width, int height)
+  Image(int width, int height)
       : width_(width), height_(height), data_(new vec3[width_ * height_]) {}
 
   const int width_;

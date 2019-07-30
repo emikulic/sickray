@@ -1,7 +1,7 @@
 CCACHE=ccache
 CXX=g++
 CXXFLAGS=-std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
- --all-warnings -fdiagnostics-color
+ --all-warnings -fdiagnostics-color -Wno-narrowing -Wno-sign-compare
 # While compiling, produce a .d (depends) file.
 MKDEP=-MMD -MT "$(<:.cc=.o)"
 
@@ -22,18 +22,17 @@ $(OBJS): %.o: %.cc
 	$(CCACHE) $(CXX) $(CXXFLAGS) $(MKDEP) -c -o $@ $<
 
 01_sphere: 01_sphere.o show.o writepng.o
-	$(CXX) $(CFLAGS) $^ -lX11 -o $@
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
 
 disc_test: disc_test.o show.o
-	$(CXX) $(CFLAGS) $^ -lX11 -o $@
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
 
 random_test: random_test.o
-	$(CXX) $(CFLAGS) $^ -o $@
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -o $@
 
 show_test: show_test.o show.o
-	$(CXX) $(CFLAGS) $^ -lX11 -o $@
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) 01_sphere 01_sphere.png disc_test random_test \
-		show_test
+	rm -f $(DEPS) $(OBJS) 01_sphere disc_test random_test show_test

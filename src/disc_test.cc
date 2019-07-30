@@ -24,5 +24,5 @@ int main() {
     v = (uniform_disc(v) / 2. * .9 + vec2{.5, .5}) * sz;
     putpixel(v.x, v.y, 255, 255, 255);
   }
-  show(sz, sz, data.get());
+  Show(sz, sz, data.get());
 }

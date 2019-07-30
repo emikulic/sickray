@@ -1,2 +1,2 @@
-class image;
-void writepng(const image& img, const char* filename);
+class Image;
+void Writepng(const Image& img, const char* filename);

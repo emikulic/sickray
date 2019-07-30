@@ -42,5 +42,5 @@ int main() {
       putpixel(i + 200, j, 0, 0, 255);
     }
 
-  show(w, h, data.get());
+  Show(w, h, data.get());
 }
