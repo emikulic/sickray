@@ -6,6 +6,7 @@
 #include "random.h"
 #include "ray.h"
 #include "show.h"
+#include "time.h"
 #include "writepng.h"
 
 namespace {
