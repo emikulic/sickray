@@ -3,7 +3,7 @@ CXX=g++
 CXXFLAGS=-std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
  --all-warnings -fdiagnostics-color -Wno-narrowing -Wno-sign-compare
 # While compiling, produce a .d (depends) file.
-MKDEP=-MMD -MT "$(<:.cc=.o)"
+MKDEP=-MMD -MT "$(<:.cc=.o) $(<:.cc=.s)"
 
 all: 01_sphere disc_test random_test show_test
 .PHONY: all
@@ -12,6 +12,7 @@ all: 01_sphere disc_test random_test show_test
 SRCS := $(wildcard *.cc)
 DEPS = $(SRCS:.cc=.d)
 OBJS = $(SRCS:.cc=.o)
+ASMS = $(SRCS:.cc=.s)
 
 # Include whatever deps files we've got so far, fail silently on files that
 # don't exist yet.
@@ -20,6 +21,11 @@ sinclude $(DEPS)
 # Build all objects and generate dependencies for them.
 $(OBJS): %.o: %.cc
 	$(CCACHE) $(CXX) $(CXXFLAGS) $(MKDEP) -c -o $@ $<
+
+# When requested, produce assembler.
+$(ASMS): %.s: %.cc
+	$(CXX) $(CXXFLAGS) $(MKDEP) -g0 -fno-asynchronous-unwind-tables \
+		-masm=intel -S -o $@ $<
 
 01_sphere: 01_sphere.o show.o writepng.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
@@ -35,4 +41,4 @@ show_test: show_test.o show.o
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) 01_sphere disc_test random_test show_test
+	rm -f $(DEPS) $(OBJS) $(ASMS) 01_sphere disc_test random_test show_test
