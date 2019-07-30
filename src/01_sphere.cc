@@ -1,5 +1,6 @@
 // Renders a sphere.
 // Right-handed coordinates.
+#include <unistd.h>
 #include <iostream>
 
 #include "random.h"
@@ -9,10 +10,37 @@
 
 namespace {
 
-constexpr int kWidth = 800;
-constexpr int kHeight = 480;
-constexpr int kSamples = 8;  // per pixel.
-constexpr int kMaxLevel = 100;
+int kWidth = 800;
+int kHeight = 480;
+int kSamples = 8;  // per pixel.
+int kMaxLevel = 100;
+const char* opt_outfile = nullptr;  // Don't save.
+bool want_display = true;
+
+void ProcessOpts(int argc, char** argv) {
+  int c;
+  while ((c = getopt(argc, argv, "w:h:s:o:x")) != -1) {
+    switch (c) {
+      case 'w':
+        kWidth = atoi(optarg);
+        break;
+      case 'h':
+        kHeight = atoi(optarg);
+        break;
+      case 's':
+        kSamples = atoi(optarg);
+        break;
+      case 'o':
+        opt_outfile = optarg;
+        break;
+      case 'x':
+        want_display = false;
+        break;
+      default:
+        std::cerr << "error parsing cmdline flags\n";
+    }
+  }
+}
 
 constexpr vec3 kCamera{0, .8, 2};
 constexpr vec3 kLookAt{.5, 1, 0};
@@ -131,8 +159,13 @@ image Render() {
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
+  ProcessOpts(argc, argv);
   image img = Render();
-  writepng(img, "01_sphere.png");
-  show(img);
+  if (opt_outfile != nullptr) {
+    writepng(img, opt_outfile);
+  }
+  if (want_display) {
+    show(img);
+  }
 }
