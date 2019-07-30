@@ -29,8 +29,15 @@ struct vec2 {
   vec2 operator+(const vec2& v) const { return vec2{x + v.x, y + v.y}; }
   vec2 operator-(const vec2& v) const { return vec2{x - v.x, y - v.y}; }
   vec2& operator+=(const vec2& v) {
-    x += v.x;
-    y += v.y;
+    *this = *this + v;
+    return *this;
+  }
+  vec2& operator-=(const vec2& v) {
+    *this = *this - v;
+    return *this;
+  }
+  vec2& operator*=(double d) {
+    *this = *this * d;
     return *this;
   }
 

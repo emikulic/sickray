@@ -16,10 +16,11 @@ int kSamples = 8;  // per pixel.
 int kMaxLevel = 100;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
+enum { kRect, kCirc } focal_blur = kCirc;
 
 void ProcessOpts(int argc, char** argv) {
   int c;
-  while ((c = getopt(argc, argv, "w:h:s:o:x")) != -1) {
+  while ((c = getopt(argc, argv, "w:h:s:o:f:x")) != -1) {
     switch (c) {
       case 'w':
         kWidth = atoi(optarg);
@@ -32,6 +33,15 @@ void ProcessOpts(int argc, char** argv) {
         break;
       case 'o':
         opt_outfile = optarg;
+        break;
+      case 'f':
+        if (strcmp(optarg, "circ") == 0) {
+          focal_blur = kCirc;
+        } else if (strcmp(optarg, "rect") == 0) {
+          focal_blur = kRect;
+        } else {
+          std::cerr << "unknown focal blur type \"" << optarg << "\"\n";
+        }
         break;
       case 'x':
         want_display = false;
@@ -132,7 +142,16 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
 
   // Focal blur: jitter camera position.
   vec2 blur{rng.rand(), rng.rand()};
-  blur = uniform_disc(blur) * kAperture;
+  switch (focal_blur) {
+    case kCirc:
+      blur = uniform_disc(blur);
+      break;
+    case kRect:
+      blur -= vec2{.5, .5};
+      blur *= 2.;
+      break;
+  };
+  blur *= kAperture;
   vec3 camera = kCamera + (look.right * blur.x) + (look.up * blur.y);
   return Trace(rng, ray{camera, proj - camera}, /*level=*/0);
 }
