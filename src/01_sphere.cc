@@ -2,6 +2,8 @@
 // Right-handed coordinates.
 #include <unistd.h>
 #include <iostream>
+#include <memory>
+#include <vector>
 
 #include "random.h"
 #include "ray.h"
@@ -64,21 +66,15 @@ constexpr vec3 kFocus{0, 0, .5};
 constexpr double kAperture = 1. / 24;  // Amount of focal blur.
 
 const Sphere kSphere{vec3{0, 1, 0}, 1.};
-const Ground kGround{0};
+//const Ground kGround{0};
 constexpr vec3 kLightPos{5, 5, 5};
-
-// Does a hit before b?
-bool Before(double a, double b) {
-  if (a > 0 && b > 0 && a < b) return true;
-  if (a > 0 && b < 0) return true;
-  return false;
-}
-
-vec3 Trace(Random& rng, const Ray& r, int level);
 
 vec3 ShadeSky(const Ray& r) {
   return vec3{.1, .2, .3} + r.dir.y * vec3{.2, .2, .2};
 }
+
+#if 0
+vec3 Trace(Random& rng, const Ray& r, int level);
 
 vec3 ShadeSphere(Random& rng, const Ray& r, double dist, int level) {
   vec3 p = r.p(dist);
@@ -119,19 +115,39 @@ vec3 ShadeGround(const Ray& r, double dist) {
   if (check) c *= .5;
   return c * shade;
 }
+#endif
+
+class MyTracer : public Tracer {
+ public:
+  MyTracer() {
+    // Set up scene.
+    scene_.AddElem(new Ground(0), new Reflective());
+  }
+
+  MyTracer(const MyTracer&) = delete;
+
+  // Returns color.
+  vec3 Trace(Random& rng, const Ray& r, int level) const override {
+    if (level > kMaxLevel) {
+      // Terminate recursion.
+      return vec3{0, 0, 0};
+    }
+
+    Scene::Hit h = scene_.Intersect(r);
+    if (h.elem == nullptr) {
+      // TODO: replace with sky object.
+      return ShadeSky(r);
+    }
+
+    return h.elem->shader->Shade(rng, this, h.elem->obj.get(), r, h.dist,
+                                kLightPos, level);
+  }
+
+  Scene scene_;
+};
 
 // Returns color.
-vec3 Trace(Random& rng, const Ray& r, int level) {
-  double sdist = kSphere.Intersect(r);
-  double gdist = kGround.Intersect(r);
-
-  if (sdist < 0 && gdist < 0) return ShadeSky(r);
-  if (Before(sdist, gdist)) return ShadeSphere(rng, r, sdist, level);
-  return ShadeGround(r, gdist);
-}
-
-// Returns color.
-vec3 RenderPixel(Random& rng, const Lookat& look_at, vec2 xy) {
+vec3 RenderPixel(const Tracer* t, Random& rng, const Lookat& look_at, vec2 xy) {
   // Antialiasing: jitter position within pixel.
   xy += vec2{rng.rand(), rng.rand()};
   // Map to [-aspect, +aspect] and [-1, +1].
@@ -157,12 +173,13 @@ vec3 RenderPixel(Random& rng, const Lookat& look_at, vec2 xy) {
   };
   blur *= kAperture;
   vec3 camera = kCamera + (look_at.right * blur.x) + (look_at.up * blur.y);
-  return Trace(rng, Ray{camera, proj - camera}, /*level=*/0);
+  return t->Trace(rng, Ray{camera, proj - camera}, /*level=*/0);
 }
 
 Image Render() {
   Image out(kWidth, kHeight);
   const Lookat look_at(kCamera, kLookAt);
+  MyTracer t;
   for (int r = 0; r < runs; ++r) {
     Random rng(0, 0, 0, 1);
     vec3* ptr = out.data_.get();
@@ -171,7 +188,7 @@ Image Render() {
       for (int x = 0; x < kWidth; ++x) {
         vec3 color{0, 0, 0};
         for (int s = 0; s < kSamples; ++s) {
-          color += RenderPixel(rng, look_at, vec2{x, y});
+          color += RenderPixel(&t, rng, look_at, vec2{x, y});
         }
         *ptr = color / kSamples;
         ++ptr;

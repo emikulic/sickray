@@ -3,6 +3,9 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
+#include <vector>
+
+#include "random.h"
 
 namespace {
 
@@ -171,6 +174,83 @@ class Ground : public Object {
   vec3 Normal(const vec3& p) const override { return vec3{0, 1, 0}; }
 
   double height;
+};
+
+class Tracer {
+ public:
+  // Returns a color.
+  virtual vec3 Trace(Random& rng, const Ray& r, int level) const = 0;
+};
+
+class Shader {
+ public:
+  // Returns a color.
+  virtual vec3 Shade(Random& rng, const Tracer* t, const Object* obj,
+                     const Ray& r, double dist, const vec3& light,
+                     int level) const = 0;
+};
+
+class Reflective : public Shader {
+ public:
+  vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
+             double dist, const vec3& light, int level) const override {
+    vec3 p = r.p(dist);
+    vec3 n = obj->Normal(p);
+    double shade = dot(n, normalize(light - p));
+    shade = max(shade, 0.);
+    constexpr vec3 metal{.6, .7, .8};  // TODO: make this configurable
+    vec3 color = metal * shade * .5;
+
+    // Perturb the normal to blur the reflection.
+    vec3 n2 =
+        n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) * .03;
+    n2 = normalize(n2);
+    Ray refray{p, reflect(p - r.start, n2)};
+    color += .5 * metal * t->Trace(rng, refray, level + 1);
+
+    return color;
+  }
+};
+
+class Scene {
+ public:
+  struct Elem {
+    std::unique_ptr<Object> obj;
+    std::unique_ptr<Shader> shader;
+  };
+
+  struct Hit {
+    double dist;
+    const Elem* elem;  // Miss = nullptr.
+  };
+
+  // Takes ownership of both pointers.
+  void AddElem(Object* o, Shader* s) {
+    elems_.push_back(
+        Elem{std::unique_ptr<Object>(o), std::unique_ptr<Shader>(s)});
+  }
+
+  Hit Intersect(const Ray& ray) const {
+    Hit h{-1, nullptr};
+    for (const auto& e : elems_) {
+      double d = e.obj->Intersect(ray);
+      if (Before(d, h.dist)) {
+        h.dist = d;
+        h.elem = &e;
+      }
+    }
+    return h;
+  }
+
+ private:
+  // Does a hit before b?
+  static bool Before(double a, double b) {
+    if (a > 0 && b > 0 && a < b) return true;
+    if (a > 0 && b < 0) return true;
+    return false;
+  }
+
+  std::vector<Elem> elems_;
 };
 
 class Image {
