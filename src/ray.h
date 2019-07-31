@@ -130,10 +130,21 @@ struct Ray {
   vec3 start, dir;
 };
 
-struct Sphere {
+class Object {
  public:
-  // Returns the distance along the ray.
-  double intersect(const Ray& r) const {
+  // Returns distance along the ray, or a negative number if there is no
+  // intersection.
+  virtual double Intersect(const Ray& r) const = 0;
+
+  // Returns the normal vector at intersection point p. Must be a unit vector.
+  virtual vec3 Normal(const vec3& p) const = 0;
+};
+
+class Sphere : public Object {
+ public:
+  Sphere(vec3 center, double radius) : center(center), radius(radius) {}
+
+  double Intersect(const Ray& r) const override {
     vec3 ec = r.start - center;
     double a = dot(r.dir, r.dir);
     double b = 2. * dot(r.dir, ec);
@@ -143,22 +154,21 @@ struct Sphere {
     return (-b - sqrt(det)) / (2. * a);
   }
 
-  // Returns the normal vector at p.
-  vec3 normal(const vec3& p) const { return normalize(p - center); }
+  vec3 Normal(const vec3& p) const override { return normalize(p - center); }
 
   vec3 center;
   double radius;
 };
 
-struct Ground {
+class Ground : public Object {
  public:
-  // Returns the distance along the ray.
-  double intersect(const Ray& r) const {
+  explicit Ground(double height) : height(height) {}
+
+  double Intersect(const Ray& r) const override {
     return (height - r.start.y) / r.dir.y;
   }
 
-  // Returns the normal vector at p.
-  vec3 normal(const vec3& p) const { return vec3{0, 1, 0}; }
+  vec3 Normal(const vec3& p) const override { return vec3{0, 1, 0}; }
 
   double height;
 };

@@ -63,8 +63,8 @@ constexpr vec3 kLookAt{.5, 1, 0};
 constexpr vec3 kFocus{0, 0, .5};
 constexpr double kAperture = 1. / 24;  // Amount of focal blur.
 
-constexpr Sphere kSphere{vec3{0, 1, 0}, 1.};
-constexpr Ground kGround{0};
+const Sphere kSphere{vec3{0, 1, 0}, 1.};
+const Ground kGround{0};
 constexpr vec3 kLightPos{5, 5, 5};
 
 // Does a hit before b?
@@ -82,7 +82,7 @@ vec3 ShadeSky(const Ray& r) {
 
 vec3 ShadeSphere(Random& rng, const Ray& r, double dist, int level) {
   vec3 p = r.p(dist);
-  vec3 n = kSphere.normal(p);
+  vec3 n = kSphere.Normal(p);
   double shade = dot(n, normalize(kLightPos - p));
   shade = max(shade, 0.);
   constexpr vec3 metal{.6, .7, .8};
@@ -103,13 +103,13 @@ vec3 ShadeSphere(Random& rng, const Ray& r, double dist, int level) {
 
 vec3 ShadeGround(const Ray& r, double dist) {
   vec3 p = r.p(dist);
-  vec3 n = kGround.normal(p);
+  vec3 n = kGround.Normal(p);
   double shade = dot(n, normalize(kLightPos - p));
   shade = max(shade, 0.) * .9;
 
   // Shadow.
   Ray s{p, kLightPos - p};
-  const double sd = kSphere.intersect(s);
+  const double sd = kSphere.Intersect(s);
   if (sd > 0 && sd < 1) shade = 0;  // In shadow.
   // Ambient.
   shade += .02;
@@ -122,8 +122,8 @@ vec3 ShadeGround(const Ray& r, double dist) {
 
 // Returns color.
 vec3 Trace(Random& rng, const Ray& r, int level) {
-  double sdist = kSphere.intersect(r);
-  double gdist = kGround.intersect(r);
+  double sdist = kSphere.Intersect(r);
+  double gdist = kGround.Intersect(r);
 
   if (sdist < 0 && gdist < 0) return ShadeSky(r);
   if (Before(sdist, gdist)) return ShadeSphere(rng, r, sdist, level);
