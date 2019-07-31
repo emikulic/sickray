@@ -102,6 +102,10 @@ class MyTracer : public Tracer {
                                  kLightPos, level);
   }
 
+  double IntersectDist(const Ray& ray) const override {
+    return scene_.Intersect(ray).dist;
+  }
+
   Scene scene_;
 };
 

@@ -180,6 +180,9 @@ class Tracer {
  public:
   // Returns a color.
   virtual vec3 Trace(Random& rng, const Ray& r, int level) const = 0;
+
+  // Returns distance along the ray to the nearest intersection.
+  virtual double IntersectDist(const Ray& ray) const = 0;
 };
 
 class Shader {
@@ -195,20 +198,23 @@ class SimpleShader : public Shader {
   vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
              double dist, const vec3& light, int level) const override {
     vec3 out = ambient * color;
-    // TODO: shadow
     vec3 p = r.p(dist);
     vec3 n = obj->Normal(p);
 
-    // Diffuse.
     if (diffuse > 0) {
-      double shade = dot(n, normalize(light - p));
-      shade = max(shade, 0.);
+      // Shadow test.
+      Ray shadow{p + 0.001 * n, light - p};
+      double dist = t->IntersectDist(shadow);
+      if (dist < 0 || dist > 1) {
+        double shade = dot(n, normalize(light - p));
+        shade = max(shade, 0.);
 
-      if (checker) {
-        bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
-        if (check) shade *= .5;
+        if (checker) {
+          bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
+          if (check) shade *= .5;
+        }
+        out += color * diffuse * shade;
       }
-      out += color * diffuse * shade;
     }
 
     if (reflection > 0) {
