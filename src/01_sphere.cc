@@ -131,9 +131,7 @@ vec3 Trace(Random& rng, const Ray& r, int level) {
 }
 
 // Returns color.
-vec3 RenderPixel(Random& rng, vec2 xy) {
-  const Lookat look(kCamera, kLookAt);
-
+vec3 RenderPixel(Random& rng, const Lookat& look_at, vec2 xy) {
   // Antialiasing: jitter position within pixel.
   xy += vec2{rng.rand(), rng.rand()};
   // Map to [-aspect, +aspect] and [-1, +1].
@@ -143,7 +141,7 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
 
   // Point on projection plane.
   double focal_dist = length(kFocus - kCamera);
-  vec3 dir = look.fwd + look.right * xy.x + look.up * xy.y;
+  vec3 dir = look_at.fwd + look_at.right * xy.x + look_at.up * xy.y;
   vec3 proj = kCamera + focal_dist * normalize(dir);
 
   // Focal blur: jitter camera position.
@@ -158,12 +156,13 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
       break;
   };
   blur *= kAperture;
-  vec3 camera = kCamera + (look.right * blur.x) + (look.up * blur.y);
+  vec3 camera = kCamera + (look_at.right * blur.x) + (look_at.up * blur.y);
   return Trace(rng, Ray{camera, proj - camera}, /*level=*/0);
 }
 
 Image Render() {
   Image out(kWidth, kHeight);
+  const Lookat look_at(kCamera, kLookAt);
   for (int r = 0; r < runs; ++r) {
     Random rng(0, 0, 0, 1);
     vec3* ptr = out.data_.get();
@@ -172,7 +171,7 @@ Image Render() {
       for (int x = 0; x < kWidth; ++x) {
         vec3 color{0, 0, 0};
         for (int s = 0; s < kSamples; ++s) {
-          color += RenderPixel(rng, vec2{x, y});
+          color += RenderPixel(rng, look_at, vec2{x, y});
         }
         *ptr = color / kSamples;
         ++ptr;
