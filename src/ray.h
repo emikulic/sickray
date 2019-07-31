@@ -190,26 +190,67 @@ class Shader {
                      int level) const = 0;
 };
 
-class Reflective : public Shader {
+class SimpleShader : public Shader {
  public:
   vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
              double dist, const vec3& light, int level) const override {
+    vec3 out = ambient * color;
+    // TODO: shadow
     vec3 p = r.p(dist);
     vec3 n = obj->Normal(p);
-    double shade = dot(n, normalize(light - p));
-    shade = max(shade, 0.);
-    constexpr vec3 metal{.6, .7, .8};  // TODO: make this configurable
-    vec3 color = metal * shade * .5;
 
-    // Perturb the normal to blur the reflection.
-    vec3 n2 =
-        n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) * .03;
-    n2 = normalize(n2);
-    Ray refray{p, reflect(p - r.start, n2)};
-    color += .5 * metal * t->Trace(rng, refray, level + 1);
+    // Diffuse.
+    if (diffuse > 0) {
+      double shade = dot(n, normalize(light - p));
+      shade = max(shade, 0.);
 
-    return color;
+      if (checker) {
+        bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
+        if (check) shade *= .5;
+      }
+      out += color * diffuse * shade;
+    }
+
+    if (reflection > 0) {
+      // Perturb the normal to blur the reflection.
+      double amount = 0.03;
+      vec3 n2 =
+          n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) *
+                  amount;
+      n2 = normalize(n2);
+      Ray refray{p, reflect(p - r.start, n2)};
+      out += color * reflection * t->Trace(rng, refray, level + 1);
+    }
+
+    return out;
   }
+
+  SimpleShader* set_color(vec3 c) {
+    color = c;
+    return this;
+  }
+  SimpleShader* set_checker(bool b) {
+    checker = b;
+    return this;
+  }
+  SimpleShader* set_ambient(double d) {
+    ambient = d;
+    return this;
+  }
+  SimpleShader* set_diffuse(double d) {
+    diffuse = d;
+    return this;
+  }
+  SimpleShader* set_reflection(double d) {
+    reflection = d;
+    return this;
+  }
+
+  vec3 color{1, 1, 1};
+  bool checker = false;
+  double ambient = .02;
+  double diffuse = 1.;
+  double reflection = 0;
 };
 
 class Scene {

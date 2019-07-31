@@ -64,64 +64,23 @@ constexpr vec3 kCamera{0, .8, 2};
 constexpr vec3 kLookAt{.5, 1, 0};
 constexpr vec3 kFocus{0, 0, .5};
 constexpr double kAperture = 1. / 24;  // Amount of focal blur.
-
-const Sphere kSphere{vec3{0, 1, 0}, 1.};
-//const Ground kGround{0};
 constexpr vec3 kLightPos{5, 5, 5};
 
 vec3 ShadeSky(const Ray& r) {
   return vec3{.1, .2, .3} + r.dir.y * vec3{.2, .2, .2};
 }
 
-#if 0
-vec3 Trace(Random& rng, const Ray& r, int level);
-
-vec3 ShadeSphere(Random& rng, const Ray& r, double dist, int level) {
-  vec3 p = r.p(dist);
-  vec3 n = kSphere.Normal(p);
-  double shade = dot(n, normalize(kLightPos - p));
-  shade = max(shade, 0.);
-  constexpr vec3 metal{.6, .7, .8};
-  vec3 color = metal * shade * .5;
-
-  // Reflection.
-  if (level < kMaxLevel) {
-    // Perturb the normal to blur the reflection.
-    vec3 n2 =
-        n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) * .03;
-    n2 = normalize(n2);
-    Ray refray{p, reflect(p - r.start, n2)};
-    color += .5 * metal * Trace(rng, refray, level + 1);
-  }
-
-  return color;
-}
-
-vec3 ShadeGround(const Ray& r, double dist) {
-  vec3 p = r.p(dist);
-  vec3 n = kGround.Normal(p);
-  double shade = dot(n, normalize(kLightPos - p));
-  shade = max(shade, 0.) * .9;
-
-  // Shadow.
-  Ray s{p, kLightPos - p};
-  const double sd = kSphere.Intersect(s);
-  if (sd > 0 && sd < 1) shade = 0;  // In shadow.
-  // Ambient.
-  shade += .02;
-
-  bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
-  vec3 c{.5, .5, .5};
-  if (check) c *= .5;
-  return c * shade;
-}
-#endif
-
 class MyTracer : public Tracer {
  public:
   MyTracer() {
     // Set up scene.
-    scene_.AddElem(new Ground(0), new Reflective());
+    scene_.AddElem(
+        new Ground(0),
+        (new SimpleShader)->set_color({.5, .5, .5})->set_checker(true));
+    scene_.AddElem(new Sphere({0, 1, 0}, 1), (new SimpleShader)
+                                                 ->set_color({.6, .7, .8})
+                                                 ->set_reflection(.5)
+                                                 ->set_diffuse(.5));
   }
 
   MyTracer(const MyTracer&) = delete;
@@ -140,7 +99,7 @@ class MyTracer : public Tracer {
     }
 
     return h.elem->shader->Shade(rng, this, h.elem->obj.get(), r, h.dist,
-                                kLightPos, level);
+                                 kLightPos, level);
   }
 
   Scene scene_;
