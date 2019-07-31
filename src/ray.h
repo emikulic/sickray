@@ -5,7 +5,11 @@
 #include <memory>
 
 namespace {
-constexpr double sqr(double d) { return d * d; }
+
+template <typename T>
+constexpr T sqr(T d) {
+  return d * d;
+}
 
 template <typename T>
 constexpr T max(T a, T b) {
@@ -37,6 +41,10 @@ struct vec2 {
     *this = *this * d;
     return *this;
   }
+  vec2& operator/=(double d) {
+    *this = *this / d;
+    return *this;
+  }
 
   double x, y;
 };
@@ -62,16 +70,19 @@ struct vec3 {
   vec3 operator-() const { return vec3{-x, -y, -z}; }
 
   vec3& operator+=(const vec3& v) {
-    x += v.x;
-    y += v.y;
-    z += v.z;
+    *this = *this + v;
     return *this;
   }
-
+  vec3& operator-=(const vec3& v) {
+    *this = *this - v;
+    return *this;
+  }
+  vec3& operator*=(const vec3& v) {
+    *this = *this * v;
+    return *this;
+  }
   vec3& operator*=(double d) {
-    x *= d;
-    y *= d;
-    z *= d;
+    *this = *this * d;
     return *this;
   }
 
