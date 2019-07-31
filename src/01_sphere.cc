@@ -18,10 +18,11 @@ int kMaxLevel = 100;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
 enum { kRect, kCirc } focal_blur = kCirc;
+int runs = 1;
 
 void ProcessOpts(int argc, char** argv) {
   int c;
-  while ((c = getopt(argc, argv, "w:h:s:o:f:x")) != -1) {
+  while ((c = getopt(argc, argv, "w:h:s:o:f:b:x")) != -1) {
     switch (c) {
       case 'w':
         kWidth = atoi(optarg);
@@ -43,6 +44,10 @@ void ProcessOpts(int argc, char** argv) {
         } else {
           std::cerr << "unknown focal blur type \"" << optarg << "\"\n";
         }
+        break;
+      case 'b':
+        runs = atoi(optarg);
+        want_display = false;
         break;
       case 'x':
         want_display = false;
@@ -158,22 +163,24 @@ vec3 RenderPixel(Random& rng, vec2 xy) {
 }
 
 Image Render() {
-  Random rng(0, 0, 0, 1);
   Image out(kWidth, kHeight);
-  vec3* ptr = out.data_.get();
-  timespec t0 = Now();
-  for (int y = 0; y < kHeight; ++y) {
-    for (int x = 0; x < kWidth; ++x) {
-      vec3 color{0, 0, 0};
-      for (int i = 0; i < kSamples; ++i) {
-        color += RenderPixel(rng, vec2{x, y});
+  for (int r = 0; r < runs; ++r) {
+    Random rng(0, 0, 0, 1);
+    vec3* ptr = out.data_.get();
+    timespec t0 = Now();
+    for (int y = 0; y < kHeight; ++y) {
+      for (int x = 0; x < kWidth; ++x) {
+        vec3 color{0, 0, 0};
+        for (int s = 0; s < kSamples; ++s) {
+          color += RenderPixel(rng, vec2{x, y});
+        }
+        *ptr = color / kSamples;
+        ++ptr;
       }
-      *ptr = color / kSamples;
-      ++ptr;
     }
+    timespec t1 = Now();
+    std::cout << t1 - t0 << " sec" << std::endl;  // Flush.
   }
-  timespec t1 = Now();
-  std::cout << t1 - t0 << " sec\n";
   return out;
 }
 
