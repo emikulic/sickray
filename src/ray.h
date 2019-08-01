@@ -176,6 +176,120 @@ class Ground : public Object {
   double height;
 };
 
+class LeftPlane : public Object {
+ public:
+  LeftPlane(double x, const vec2& yz1, const vec2& yz2)
+      : x(x), yz1(yz1), yz2(yz2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (x - r.start.x) / r.dir.x;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.y < yz1.x || p.z < yz1.y || p.y > yz2.x || p.z > yz2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{1, 0, 0}; }
+
+  double x;
+  vec2 yz1, yz2;
+};
+
+class RightPlane : public Object {
+ public:
+  RightPlane(double x, const vec2& yz1, const vec2& yz2)
+      : x(x), yz1(yz1), yz2(yz2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (x - r.start.x) / r.dir.x;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.y < yz1.x || p.z < yz1.y || p.y > yz2.x || p.z > yz2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{-1, 0, 0}; }
+
+  double x;
+  vec2 yz1, yz2;
+};
+
+class FwdPlane : public Object {
+ public:
+  FwdPlane(double z, const vec2& xy1, const vec2& xy2)
+      : z(z), xy1(xy1), xy2(xy2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (z - r.start.z) / r.dir.z;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.x < xy1.x || p.y < xy1.y || p.x > xy2.x || p.y > xy2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{0, 0, 1}; }
+
+  double z;
+  vec2 xy1, xy2;
+};
+
+class BackPlane : public Object {
+ public:
+  BackPlane(double z, const vec2& xy1, const vec2& xy2)
+      : z(z), xy1(xy1), xy2(xy2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (z - r.start.z) / r.dir.z;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.x < xy1.x || p.y < xy1.y || p.x > xy2.x || p.y > xy2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{0, 0, -1}; }
+
+  double z;
+  vec2 xy1, xy2;
+};
+
+class TopPlane : public Object {
+ public:
+  TopPlane(double y, const vec2& xz1, const vec2& xz2)
+      : y(y), xz1(xz1), xz2(xz2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (y - r.start.y) / r.dir.y;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.x < xz1.x || p.z < xz1.y || p.x > xz2.x || p.z > xz2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{0, -1, 0}; }
+
+  double y;
+  vec2 xz1, xz2;
+};
+
+class BtmPlane : public Object {
+ public:
+  BtmPlane(double y, const vec2& xz1, const vec2& xz2)
+      : y(y), xz1(xz1), xz2(xz2) {}
+
+  double Intersect(const Ray& r) const override {
+    double dist = (y - r.start.y) / r.dir.y;
+    vec3 p = r.p(dist);
+    // Is it outside the rectangle?
+    if (p.x < xz1.x || p.z < xz1.y || p.x > xz2.x || p.z > xz2.y) return -1;
+    return dist;
+  }
+
+  vec3 Normal(const vec3& p) const override { return vec3{0, 1, 0}; }
+
+  double y;
+  vec2 xz1, xz2;
+};
+
 class Tracer {
  public:
   // Returns a color.
