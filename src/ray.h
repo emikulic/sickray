@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <unordered_set>
 
 #include "random.h"
 
@@ -135,6 +136,8 @@ struct Ray {
 
 class Object {
  public:
+  virtual ~Object() {}
+
   // Returns distance along the ray, or a negative number if there is no
   // intersection.
   virtual double Intersect(const Ray& r) const = 0;
@@ -301,6 +304,8 @@ class Tracer {
 
 class Shader {
  public:
+  virtual ~Shader() {}
+
   // Returns a color.
   virtual vec3 Shade(Random& rng, const Tracer* t, const Object* obj,
                      const Ray& r, double dist, const vec3& light,
@@ -376,8 +381,9 @@ class SimpleShader : public Shader {
 class Scene {
  public:
   struct Elem {
-    std::unique_ptr<Object> obj;
-    std::unique_ptr<Shader> shader;
+    Elem(Object* o, Shader* s) : obj(o), shader(s) {}
+    Object* obj;
+    Shader* shader;
   };
 
   struct Hit {
@@ -385,10 +391,18 @@ class Scene {
     const Elem* elem;  // Miss = nullptr.
   };
 
+  ~Scene() {
+    // Free all objects that were added.
+    for (const Object* o : objs_) { delete o; }
+    for (const Shader* s : shaders_) { delete s; }
+    // Zero objects and shaders.
+  }
+
   // Takes ownership of both pointers.
   void AddElem(Object* o, Shader* s) {
-    elems_.push_back(
-        Elem{std::unique_ptr<Object>(o), std::unique_ptr<Shader>(s)});
+    elems_.emplace_back(o, s);
+    objs_.insert(o);
+    shaders_.insert(s);
   }
 
   Hit Intersect(const Ray& ray) const {
@@ -412,6 +426,8 @@ class Scene {
   }
 
   std::vector<Elem> elems_;
+  std::unordered_set<Object*> objs_;
+  std::unordered_set<Shader*> shaders_;
 };
 
 class Image {

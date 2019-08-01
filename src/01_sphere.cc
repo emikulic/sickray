@@ -108,8 +108,8 @@ class MyTracer : public Tracer {
       return ShadeSky(r);
     }
 
-    return h.elem->shader->Shade(rng, this, h.elem->obj.get(), r, h.dist,
-                                 kLightPos, level);
+    return h.elem->shader->Shade(rng, this, h.elem->obj, r, h.dist, kLightPos,
+                                 level);
   }
 
   double IntersectDist(const Ray& ray) const override {
