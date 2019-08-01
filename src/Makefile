@@ -1,6 +1,6 @@
 CCACHE=ccache
 CXX=g++
-CXXFLAGS=-std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
+CXXFLAGS=-g1 -std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
  --all-warnings -fdiagnostics-color -Wno-narrowing -Wno-sign-compare
 # While compiling, produce a .d (depends) file.
 MKDEP=-MMD -MT "$(<:.cc=.o) $(<:.cc=.s)"
