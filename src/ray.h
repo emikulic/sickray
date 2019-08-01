@@ -50,6 +50,17 @@ struct vec2 {
     return *this;
   }
 
+  friend vec2 operator*(double d, const vec2& v) { return v * d; }
+
+  // Returns a uniformly distributed random point within the unit circle.
+  static vec2 uniform_disc(Random& rng) {
+    vec2 v;
+    do {
+      v = 2 * (vec2{rng.rand(), rng.rand()} - vec2{.5, .5});
+    } while ((v.x * v.x + v.y * v.y) > 1.);
+    return v;
+  }
+
   double x, y;
 };
 
