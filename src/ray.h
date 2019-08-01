@@ -3,8 +3,8 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "random.h"
 
@@ -393,8 +393,12 @@ class Scene {
 
   ~Scene() {
     // Free all objects that were added.
-    for (const Object* o : objs_) { delete o; }
-    for (const Shader* s : shaders_) { delete s; }
+    for (const Object* o : objs_) {
+      delete o;
+    }
+    for (const Shader* s : shaders_) {
+      delete s;
+    }
     // Zero objects and shaders.
   }
 
@@ -403,6 +407,21 @@ class Scene {
     elems_.emplace_back(o, s);
     objs_.insert(o);
     shaders_.insert(s);
+  }
+
+  void AddBox(const vec3& xyz1, const vec3& xyz2, Shader* s) {
+    AddElem(new RightPlane(xyz1.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
+            s);
+    AddElem(new LeftPlane(xyz2.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
+            s);
+    AddElem(new TopPlane(xyz1.y, vec2{xyz1.x, xyz1.z}, vec2{xyz2.x, xyz2.z}),
+            s);
+    AddElem(new BtmPlane(xyz2.y, vec2{xyz1.x, xyz1.z}, vec2{xyz2.x, xyz2.z}),
+            s);
+    AddElem(new BackPlane(xyz1.z, vec2{xyz1.x, xyz1.y}, vec2{xyz2.x, xyz2.y}),
+            s);
+    AddElem(new FwdPlane(xyz2.z, vec2{xyz1.x, xyz1.y}, vec2{xyz2.x, xyz2.y}),
+            s);
   }
 
   Hit Intersect(const Ray& ray) const {

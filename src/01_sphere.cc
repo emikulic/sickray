@@ -13,10 +13,10 @@
 
 namespace {
 
-int kWidth = 800;
+int kWidth = 600;
 int kHeight = 400;
 int kSamples = 8;  // per pixel.
-int kMaxLevel = 100;
+int kMaxLevel = 6;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
 enum { kRect, kCirc } focal_blur = kCirc;
@@ -24,7 +24,7 @@ int runs = 1;
 
 void ProcessOpts(int argc, char** argv) {
   int c;
-  while ((c = getopt(argc, argv, "w:h:s:o:f:b:x")) != -1) {
+  while ((c = getopt(argc, argv, "w:h:s:o:f:b:l:x")) != -1) {
     switch (c) {
       case 'w':
         kWidth = atoi(optarg);
@@ -51,6 +51,9 @@ void ProcessOpts(int argc, char** argv) {
         runs = atoi(optarg);
         want_display = false;
         break;
+      case 'l':
+        kMaxLevel = atoi(optarg);
+        break;
       case 'x':
         want_display = false;
         break;
@@ -60,11 +63,11 @@ void ProcessOpts(int argc, char** argv) {
   }
 }
 
-constexpr vec3 kCamera{0, .8, 2.5};
-constexpr vec3 kLookAt{.5, 1, 0};
-constexpr vec3 kFocus{0, 0, .5};
+constexpr vec3 kCamera{3.25, 2.25, 2.5};
+constexpr vec3 kLookAt{3, 1, 0};
+constexpr vec3 kFocus{3, 1, 0};
 constexpr double kAperture = 1. / 24;  // Amount of focal blur.
-constexpr vec3 kLightPos{5, 5, 5};
+constexpr vec3 kLightPos{6, 8, 4};
 
 vec3 ShadeSky(const Ray& r) {
   return vec3{.1, .2, .3} + r.dir.y * vec3{.2, .2, .2};
@@ -77,20 +80,15 @@ class MyTracer : public Tracer {
     scene_.AddElem(
         new Ground(0),
         (new SimpleShader)->set_color({.5, .5, .5})->set_checker(true));
-    scene_.AddElem(new Sphere({0, 1, 0}, .5), (new SimpleShader)
-                                                  ->set_color({.6, .7, .8})
-                                                  ->set_reflection(.5)
-                                                  ->set_diffuse(.5));
-    scene_.AddElem(new LeftPlane(-1, {0, -1}, {1, 1}),
-                   (new SimpleShader)->set_color({1, 0, 0}));
-    scene_.AddElem(new RightPlane(1, {0, -1}, {1, 1}),
-                   (new SimpleShader)->set_color({0, 1, 0}));
-    scene_.AddElem(new FwdPlane(-1, {-1, 1}, {1, 3}),
-                   (new SimpleShader)->set_color({1, 1, 0}));
-    scene_.AddElem(new TopPlane(2, {-1, -1}, {1, 0}),
-                   (new SimpleShader)->set_color({0, 1, 1}));
-    scene_.AddElem(new BtmPlane(.05, {-.5, -.5}, {.5, .5}),
-                   (new SimpleShader)->set_color({1, 0, 1}));
+    scene_.AddElem(new Sphere({2, 1, 0}, 1), (new SimpleShader)
+                                                 ->set_color({.6, .7, .8})
+                                                 ->set_reflection(.8)
+                                                 ->set_diffuse(.2));
+    scene_.AddElem(new Sphere({4, 1, 0}, 1), (new SimpleShader)
+                                                 ->set_color({.7, .8, .9})
+                                                 ->set_reflection(.8)
+                                                 ->set_diffuse(.2));
+    scene_.AddBox(vec3{-1, 0, -1}, vec3{1, 1.5, 1}, new SimpleShader);
   }
 
   MyTracer(const MyTracer&) = delete;
