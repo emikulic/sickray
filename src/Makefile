@@ -5,7 +5,7 @@ CXXFLAGS=-g1 -std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
 # While compiling, produce a .d (depends) file.
 MKDEP=-MMD -MT "$(<:.cc=.o) $(<:.cc=.s)"
 
-all: 01_sphere disc_test random_test show_test
+all: sickray disc_test random_test show_test
 .PHONY: all
 
 # Automatically find sources.
@@ -27,7 +27,7 @@ $(ASMS): %.s: %.cc
 	$(CXX) $(CXXFLAGS) $(MKDEP) -g0 -fno-asynchronous-unwind-tables \
 		-masm=intel -S -o $@ $<
 
-01_sphere: 01_sphere.o show.o writepng.o
+sickray: sickray.o show.o writepng.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
 
 disc_test: disc_test.o show.o
@@ -41,4 +41,4 @@ show_test: show_test.o show.o
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) $(ASMS) 01_sphere disc_test random_test show_test
+	rm -f $(DEPS) $(OBJS) $(ASMS) sickray disc_test random_test show_test
