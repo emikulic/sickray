@@ -123,6 +123,10 @@ struct vec3 {
     return c + p;
   }
 
+  vec2 xy() const { return vec2{x, y}; }
+  vec2 xz() const { return vec2{x, z}; }
+  vec2 yz() const { return vec2{y, z}; }
+
   double x, y, z;
 };
 
@@ -406,18 +410,12 @@ class Scene {
   }
 
   void AddBox(const vec3& xyz1, const vec3& xyz2, const Shader& s) {
-    AddElem(new RightPlane(xyz1.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
-            s);
-    AddElem(new LeftPlane(xyz2.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
-            s);
-    AddElem(new TopPlane(xyz1.y, vec2{xyz1.x, xyz1.z}, vec2{xyz2.x, xyz2.z}),
-            s);
-    AddElem(new BtmPlane(xyz2.y, vec2{xyz1.x, xyz1.z}, vec2{xyz2.x, xyz2.z}),
-            s);
-    AddElem(new BackPlane(xyz1.z, vec2{xyz1.x, xyz1.y}, vec2{xyz2.x, xyz2.y}),
-            s);
-    AddElem(new FwdPlane(xyz2.z, vec2{xyz1.x, xyz1.y}, vec2{xyz2.x, xyz2.y}),
-            s);
+    AddElem(new RightPlane(xyz1.x, xyz1.yz(), xyz2.yz()), s);
+    AddElem(new LeftPlane(xyz2.x, xyz1.yz(), xyz2.yz()), s);
+    AddElem(new TopPlane(xyz1.y, xyz1.xz(), xyz2.xz()), s);
+    AddElem(new BtmPlane(xyz2.y, xyz1.xz(), xyz2.xz()), s);
+    AddElem(new BackPlane(xyz1.z, xyz1.xy(), xyz2.xy()), s);
+    AddElem(new FwdPlane(xyz2.z, xyz1.xy(), xyz2.xy()), s);
   }
 
   Hit Intersect(const Ray& ray) const {
