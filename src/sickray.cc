@@ -16,8 +16,8 @@ namespace {
 
 int kWidth = 600;
 int kHeight = 400;
-int kSamples = 2;  // per pixel.
-int kMaxLevel = 6;
+int kSamples = 4;  // per pixel.
+int kMaxLevel = 2;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
 int runs = 1;
@@ -58,7 +58,6 @@ constexpr vec3 kCamera{0, 1, 2};
 constexpr vec3 kLookAt{0, 1, 0};
 constexpr vec3 kFocus{0, 1, 0};
 constexpr double kAperture = 1. / 128;  // Amount of focal blur.
-constexpr vec3 kLightPos{0, 1.8, 0};
 
 class MyTracer : public Tracer {
  public:
@@ -67,14 +66,20 @@ class MyTracer : public Tracer {
     Shader wall = Shader().set_color({.9, .9, .9});  //.set_checker(true);
     scene_.AddRoom({-3, 0, -3}, {3, 2, 3}, wall);
 
+    scene_.AddElem(new TopPlane(1.98, {-.2, -.2}, {1.6, .2}),
+                   Shader().set_light(true));
+
     // Some pillars.
     Shader pillar = Shader().set_color({.9, .9, .8});
     scene_.AddBox({-3, 0, -3}, {-2, 2, -2}, pillar);
     scene_.AddBox({2.5, 0, -3}, {3, 2, -2.5}, pillar);
-    // scene_.AddBox({2,0,-1}, {3,2,0}, pillar);
+    scene_.AddBox({2, 0, -1}, {3, 2, 0}, pillar);
 
-    // Boxes.
+    // Still life.
     scene_.AddBox({-1.5, 0, 0}, {-1., 0.5, .5}, Shader().set_color({1, 0, 0}));
+    scene_.AddElem(
+        new Sphere({1., .5, .5}, .5),
+        Shader().set_diffuse(.2).set_reflection(.8).set_color({.7, .8, .9}));
   }
 
   MyTracer(const MyTracer&) = delete;
@@ -85,18 +90,11 @@ class MyTracer : public Tracer {
       // Terminate recursion.
       return vec3{0, 0, 0};
     }
-
     Scene::Hit h = scene_.Intersect(r);
     if (h.elem == nullptr) {
       return {0, 0, 0};
     }
-
-    return h.elem->shader.Shade(rng, this, h.elem->obj, r, h.dist, kLightPos,
-                                level);
-  }
-
-  double IntersectDist(const Ray& ray) const override {
-    return scene_.Intersect(ray).dist;
+    return h.elem->shader.Shade(rng, this, h.elem->obj, r, h.dist, level);
   }
 
   Scene scene_;

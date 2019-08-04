@@ -315,33 +315,32 @@ class Tracer {
  public:
   // Returns a color.
   virtual vec3 Trace(Random& rng, const Ray& r, int level) const = 0;
-
-  // Returns distance along the ray to the nearest intersection.
-  virtual double IntersectDist(const Ray& ray) const = 0;
 };
 
 class Shader {
  public:
   vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
-             double dist, const vec3& light, int level) const {
-    vec3 out = ambient * color;
+             double dist, int level) const {
+    if (light) {
+      return color;
+    }
+    vec3 out{0, 0, 0};
     vec3 p = r.p(dist);
     vec3 n = obj->Normal(p);
 
     if (diffuse > 0) {
-      // Shadow test.
-      Ray shadow{p + 0.001 * n, light - p};
-      double dist = t->IntersectDist(shadow);
-      if (dist < 0 || dist > 1) {
-        double shade = dot(n, normalize(light - p));
-        shade = max(shade, 0.);
+      // Pick random direction.
+      vec3 d;
+      double shade;
+      do {
+        d = vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5};
+        d = normalize(d);
+        shade = dot(n, d);
+      } while (shade <= 0);
 
-        if (checker) {
-          bool check = (fract(p.x) < .5) ^ (fract(p.z) < .5);
-          if (check) shade *= .5;
-        }
-        out += color * diffuse * shade;
-      }
+      // Trace.
+      vec3 incoming = t->Trace(rng, Ray{p, d}, level + 1);
+      out += color * diffuse * shade * incoming;
     }
 
     if (reflection > 0) {
@@ -362,14 +361,6 @@ class Shader {
     color = c;
     return *this;
   }
-  Shader& set_checker(bool b) {
-    checker = b;
-    return *this;
-  }
-  Shader& set_ambient(double d) {
-    ambient = d;
-    return *this;
-  }
   Shader& set_diffuse(double d) {
     diffuse = d;
     return *this;
@@ -378,12 +369,20 @@ class Shader {
     reflection = d;
     return *this;
   }
+  Shader& set_checker(bool b) {
+    checker = b;
+    return *this;
+  }
+  Shader& set_light(bool b) {
+    light = b;
+    return *this;
+  }
 
   vec3 color{1, 1, 1};
-  bool checker = false;
-  double ambient = .02;
   double diffuse = 1.;
   double reflection = 0;
+  bool checker = false;
+  bool light = false;
 };
 
 class Scene {
