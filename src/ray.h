@@ -100,6 +100,10 @@ struct vec3 {
     *this = *this * d;
     return *this;
   }
+  vec3& operator/=(double d) {
+    *this = *this / d;
+    return *this;
+  }
 
   friend vec3 operator*(double d, const vec3& v) { return v * d; }
 
@@ -441,28 +445,3 @@ class Scene {
   std::vector<Elem> elems_;
   std::unordered_set<Object*> objs_;
 };
-
-class Image {
- public:
-  Image(int width, int height)
-      : width_(width), height_(height), data_(new vec3[width_ * height_]) {}
-
-  const int width_;
-  const int height_;
-  std::unique_ptr<vec3[]> data_;
-};
-
-namespace {
-
-template <typename T>
-constexpr float clip(T f, T min = 0., T max = 1.) {
-  return (f < min) ? min : ((f > max) ? max : f);
-}
-
-constexpr uint8_t from_float(float linear, float gamma = 2.2) {
-  float out = powf(linear, 1. / gamma);
-  out = clip(out);
-  return static_cast<uint8_t>(out * 255. + .5);
-}
-
-}  // namespace

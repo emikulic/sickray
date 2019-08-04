@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "image.h"
 #include "random.h"
 #include "ray.h"
 #include "show.h"
@@ -130,7 +131,7 @@ Image Render() {
   MyTracer t;
   for (int r = 0; r < runs; ++r) {
     Random rng(0, 0, 0, 1);
-    vec3* ptr = out.data_.get();
+    double* ptr = out.data_.get();
     timespec t0 = Now();
     for (int y = 0; y < kHeight; ++y) {
       for (int x = 0; x < kWidth; ++x) {
@@ -138,8 +139,11 @@ Image Render() {
         for (int s = 0; s < kSamples; ++s) {
           color += RenderPixel(&t, rng, look_at, vec2{x, y});
         }
-        *ptr = color / kSamples;
-        ++ptr;
+        color /= kSamples;
+        ptr[0] = color.x;
+        ptr[1] = color.y;
+        ptr[2] = color.z;
+        ptr += 3;
       }
     }
     timespec t1 = Now();

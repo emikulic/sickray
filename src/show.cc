@@ -10,7 +10,7 @@
 #include <X11/keysym.h>
 #include <err.h>
 
-#include "ray.h"
+#include "image.h"
 #include "show.h"
 
 namespace {
@@ -207,15 +207,15 @@ void Show(const Image& img) {
   const int h = img.height_;
   std::unique_ptr<uint8_t[]> data(new uint8_t[w * h * 4]);
 
-  const vec3* src = img.data_.get();
+  const double* src = img.data_.get();
   uint8_t* dst = data.get();
   for (int y = 0; y < h; ++y)
     for (int x = 0; x < w; ++x) {
-      dst[0] = from_float(src->z);
-      dst[1] = from_float(src->y);
-      dst[2] = from_float(src->x);
+      dst[0] = Image::from_float(src[2]);
+      dst[1] = Image::from_float(src[1]);
+      dst[2] = Image::from_float(src[0]);
       dst += 4;
-      src += 1;
+      src += 3;
     }
 
   Show(w, h, data.get());
