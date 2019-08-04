@@ -315,18 +315,8 @@ class Tracer {
 
 class Shader {
  public:
-  virtual ~Shader() {}
-
-  // Returns a color.
-  virtual vec3 Shade(Random& rng, const Tracer* t, const Object* obj,
-                     const Ray& r, double dist, const vec3& light,
-                     int level) const = 0;
-};
-
-class SimpleShader : public Shader {
- public:
   vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
-             double dist, const vec3& light, int level) const override {
+             double dist, const vec3& light, int level) const {
     vec3 out = ambient * color;
     vec3 p = r.p(dist);
     vec3 n = obj->Normal(p);
@@ -361,25 +351,25 @@ class SimpleShader : public Shader {
     return out;
   }
 
-  SimpleShader* set_color(vec3 c) {
+  Shader& set_color(vec3 c) {
     color = c;
-    return this;
+    return *this;
   }
-  SimpleShader* set_checker(bool b) {
+  Shader& set_checker(bool b) {
     checker = b;
-    return this;
+    return *this;
   }
-  SimpleShader* set_ambient(double d) {
+  Shader& set_ambient(double d) {
     ambient = d;
-    return this;
+    return *this;
   }
-  SimpleShader* set_diffuse(double d) {
+  Shader& set_diffuse(double d) {
     diffuse = d;
-    return this;
+    return *this;
   }
-  SimpleShader* set_reflection(double d) {
+  Shader& set_reflection(double d) {
     reflection = d;
-    return this;
+    return *this;
   }
 
   vec3 color{1, 1, 1};
@@ -392,9 +382,9 @@ class SimpleShader : public Shader {
 class Scene {
  public:
   struct Elem {
-    Elem(Object* o, Shader* s) : obj(o), shader(s) {}
+    Elem(Object* o, const Shader& s) : obj(o), shader(s) {}
     Object* obj;
-    Shader* shader;
+    Shader shader;
   };
 
   struct Hit {
@@ -407,20 +397,15 @@ class Scene {
     for (const Object* o : objs_) {
       delete o;
     }
-    for (const Shader* s : shaders_) {
-      delete s;
-    }
-    // Zero objects and shaders.
   }
 
-  // Takes ownership of both pointers.
-  void AddElem(Object* o, Shader* s) {
+  // Takes ownership of object.
+  void AddElem(Object* o, const Shader& s) {
     elems_.emplace_back(o, s);
     objs_.insert(o);
-    shaders_.insert(s);
   }
 
-  void AddBox(const vec3& xyz1, const vec3& xyz2, Shader* s) {
+  void AddBox(const vec3& xyz1, const vec3& xyz2, const Shader& s) {
     AddElem(new RightPlane(xyz1.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
             s);
     AddElem(new LeftPlane(xyz2.x, vec2{xyz1.y, xyz1.z}, vec2{xyz2.y, xyz2.z}),
@@ -457,7 +442,6 @@ class Scene {
 
   std::vector<Elem> elems_;
   std::unordered_set<Object*> objs_;
-  std::unordered_set<Shader*> shaders_;
 };
 
 class Image {

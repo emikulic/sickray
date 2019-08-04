@@ -67,18 +67,15 @@ class MyTracer : public Tracer {
  public:
   MyTracer() {
     // Set up scene.
+    scene_.AddElem(new Ground(0),
+                   Shader().set_color({.5, .5, .5}).set_checker(true));
     scene_.AddElem(
-        new Ground(0),
-        (new SimpleShader)->set_color({.5, .5, .5})->set_checker(true));
-    scene_.AddElem(new Sphere({2, 1, 0}, 1), (new SimpleShader)
-                                                 ->set_color({.6, .7, .8})
-                                                 ->set_reflection(.8)
-                                                 ->set_diffuse(.2));
-    scene_.AddElem(new Sphere({4, 1, 0}, 1), (new SimpleShader)
-                                                 ->set_color({.7, .8, .9})
-                                                 ->set_reflection(.8)
-                                                 ->set_diffuse(.2));
-    scene_.AddBox(vec3{-1, 0, -1}, vec3{1, 1.5, 1}, new SimpleShader);
+        new Sphere({2, 1, 0}, 1),
+        Shader().set_color({.6, .7, .8}).set_reflection(.8).set_diffuse(.2));
+    scene_.AddElem(
+        new Sphere({4, 1, 0}, 1),
+        Shader().set_color({.7, .8, .9}).set_reflection(.8).set_diffuse(.2));
+    scene_.AddBox(vec3{-1, 0, -1}, vec3{1, 1.5, 1}, Shader());
   }
 
   MyTracer(const MyTracer&) = delete;
@@ -96,8 +93,8 @@ class MyTracer : public Tracer {
       return ShadeSky(r);
     }
 
-    return h.elem->shader->Shade(rng, this, h.elem->obj, r, h.dist, kLightPos,
-                                 level);
+    return h.elem->shader.Shade(rng, this, h.elem->obj, r, h.dist, kLightPos,
+                                level);
   }
 
   double IntersectDist(const Ray& ray) const override {
