@@ -3,7 +3,6 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
-#include <unordered_set>
 #include <vector>
 
 #include "random.h"
@@ -400,17 +399,10 @@ class Scene {
     const Elem* elem;  // Miss = nullptr.
   };
 
-  ~Scene() {
-    // Free all objects that were added.
-    for (const Object* o : objs_) {
-      delete o;
-    }
-  }
-
   // Takes ownership of object.
   void AddElem(Object* o, const Shader& s) {
     elems_.emplace_back(o, s);
-    objs_.insert(o);
+    objs_.emplace_back(o);
   }
 
   void AddBox(const vec3& xyz1, const vec3& xyz2, const Shader& s) {
@@ -443,5 +435,5 @@ class Scene {
   }
 
   std::vector<Elem> elems_;
-  std::unordered_set<Object*> objs_;
+  std::vector<std::unique_ptr<Object>> objs_;
 };
