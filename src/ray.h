@@ -414,6 +414,16 @@ class Scene {
     AddElem(new FwdPlane(xyz2.z, xyz1.xy(), xyz2.xy()), s);
   }
 
+  void AddRoom(const vec3& xyz1, const vec3& xyz2, const Shader& s) {
+    // A box with normals inverted.
+    AddElem(new LeftPlane(xyz1.x, xyz1.yz(), xyz2.yz()), s);
+    AddElem(new RightPlane(xyz2.x, xyz1.yz(), xyz2.yz()), s);
+    AddElem(new BtmPlane(xyz1.y, xyz1.xz(), xyz2.xz()), s);
+    AddElem(new TopPlane(xyz2.y, xyz1.xz(), xyz2.xz()), s);
+    AddElem(new FwdPlane(xyz1.z, xyz1.xy(), xyz2.xy()), s);
+    AddElem(new BackPlane(xyz2.z, xyz1.xy(), xyz2.xy()), s);
+  }
+
   Hit Intersect(const Ray& ray) const {
     Hit h{-1, nullptr};
     for (const auto& e : elems_) {
