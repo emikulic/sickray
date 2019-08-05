@@ -51,8 +51,9 @@ Image Render() {
   for (int r = 0; r < runs; ++r) {
     double* ptr = out.data_.get();
     timespec t0 = Now();
+    Random rng0;
     for (int y = 0; y < kHeight; ++y) {
-      Random rng(0, 0, 0, y);
+      Random rng = rng0.fork(y);
       for (int x = 0; x < kWidth; ++x) {
         double d = 0;
         for (int s = 0; s < kSamples; ++s) {

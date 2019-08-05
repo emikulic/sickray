@@ -125,10 +125,11 @@ Image Render() {
   const Lookat look_at(kCamera, kLookAt);
   MyTracer t;
   for (int r = 0; r < runs; ++r) {
-    Random rng(0, 0, 0, 1);
+    Random rng0;
     double* ptr = out.data_.get();
     timespec t0 = Now();
     for (int y = 0; y < kHeight; ++y) {
+      Random rng = rng0.fork(y);
       for (int x = 0; x < kWidth; ++x) {
         vec3 color{0, 0, 0};
         for (int s = 0; s < kSamples; ++s) {

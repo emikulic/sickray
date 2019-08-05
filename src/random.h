@@ -5,13 +5,11 @@
 
 class Random {
  public:
-  Random() = delete;  // Unsafe.
-
-  Random(uint64_t a, uint64_t b, uint64_t c, uint64_t d) : s{a, b, c, d} {
-    s[3] = mix(1, mix(s[3], 1));
-    s[2] = mix(s[3], 1);
-    s[1] = mix(s[2], 1);
-    s[0] = mix(s[1], 1);
+  Random() {
+    s[0] = mix(1, 1);
+    s[1] = mix(2, 1);
+    s[2] = mix(3, 1);
+    s[3] = mix(4, 1);
   }
 
   // Returns a random number in the range [0, 1)
@@ -43,6 +41,21 @@ class Random {
     s[3] = rotl(s[3], 45);
 
     return result_plus;
+  }
+
+  // Returns a new rng with the new mixin added.
+  Random fork(uint64_t mixin) {
+    Random out = *this;
+    out.s[0] = mix(out.s[0], mixin);
+    out.s[1] = mix(out.s[1], out.s[0]);
+    out.s[2] = mix(out.s[2], out.s[1]);
+    out.s[3] = mix(out.s[3], out.s[2]);
+
+    out.s[2] = mix(out.s[2], out.s[3]);
+    out.s[1] = mix(out.s[1], out.s[2]);
+    out.s[0] = mix(out.s[0], out.s[1]);
+    out.next();
+    return out;
   }
 
   static uint64_t rotl(uint64_t x, int k) { return (x << k) | (x >> (64 - k)); }

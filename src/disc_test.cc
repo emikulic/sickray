@@ -18,7 +18,7 @@ int main() {
 
   memset(data.get(), 0, sz * sz * 4);
 
-  Random rng(0, 0, 0, 1);
+  Random rng;
   for (int i = 0; i < 1000; ++i) {
     vec2 v = (vec2::uniform_disc(rng) / 2. * .9 + vec2{.5, .5}) * sz;
     putpixel(v.x, v.y, 255, 255, 255);
