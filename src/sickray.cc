@@ -60,7 +60,8 @@ void ProcessOpts(int argc, char** argv) {
   }
 }
 
-constexpr vec3 kCamera{0, 1, 2};
+// constexpr vec3 kCamera{-2.5, 1, 0};
+constexpr vec3 kCamera{-1, 1, 2};
 constexpr vec3 kLookAt{0, 1, 0};
 constexpr vec3 kFocus{0, 1, 0};
 constexpr double kAperture = 1. / 128;  // Amount of focal blur.
@@ -72,20 +73,31 @@ class MyTracer : public Tracer {
     Shader wall = Shader().set_color({.9, .9, .9});  //.set_checker(true);
     scene_.AddRoom({-3, 0, -3}, {3, 2, 3}, wall);
 
-    scene_.AddElem(new TopPlane(1.98, {-.2, -.2}, {1.6, .2}),
-                   Shader().set_light(true));
+    Shader light = Shader().set_light(true);
+    // scene_.AddElem(new TopPlane(1.98, {-.2, -.9}, {1.6, .9}), light);
+
+    // Lights on the RHS.
+    for (double z = -2.5; z < 3; ++z) {
+      scene_.AddElem(new RightPlane(2.98, {0.1, z + .1}, {1.5, z + .4}), light);
+    }
 
     // Some pillars.
     Shader pillar = Shader().set_color({.9, .9, .8});
     scene_.AddBox({-3, 0, -3}, {-2, 2, -2}, pillar);
-    scene_.AddBox({2.5, 0, -3}, {3, 2, -2.5}, pillar);
-    scene_.AddBox({2, 0, -1}, {3, 2, 0}, pillar);
+
+    // Pillars on the RHS.
+    for (double z = -3; z <= 3; ++z) {
+      scene_.AddBox({2.5, 0, z}, {3, 2, z + .5}, pillar);
+    }
+
+    // scene_.AddBox({2, 0, -1}, {3, 2, 0}, pillar);
 
     // Still life.
-    scene_.AddBox({-1.5, 0, 0}, {-1., 0.5, .5}, Shader().set_color({1, 0, 0}));
-    scene_.AddElem(
-        new Sphere({1., .5, .5}, .5),
-        Shader().set_diffuse(.2).set_reflection(.8).set_color({.7, .8, .9}));
+    scene_.AddBox({-.7, 0, 0}, {-.2, 0.5, .5}, Shader().set_color({1, 0, 0}));
+    if (0)
+      scene_.AddElem(
+          new Sphere({1., .5, .5}, .5),
+          Shader().set_diffuse(.2).set_reflection(.8).set_color({.7, .8, .9}));
   }
 
   MyTracer(const MyTracer&) = delete;
