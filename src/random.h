@@ -7,9 +7,10 @@ class Random {
   Random() = delete;  // Unsafe.
 
   // Don't initialize with all zeros.
-  Random(uint64_t a, uint64_t b, uint64_t c, uint64_t d) : s{a, b, c, d} {
+  Random(uint64_t a, uint64_t b, uint64_t c, uint64_t d, int mix_steps = 11)
+      : s{a, b, c, d} {
     // Need ~11 calls to start mixing.
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i < mix_steps; ++i) {
       next();
     }
   }

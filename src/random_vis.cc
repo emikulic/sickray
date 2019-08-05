@@ -49,10 +49,10 @@ void ProcessOpts(int argc, char** argv) {
 Image Render() {
   Image out(kWidth, kHeight);
   for (int r = 0; r < runs; ++r) {
-    Random rng(0, 0, 0, 1);
     double* ptr = out.data_.get();
     timespec t0 = Now();
     for (int y = 0; y < kHeight; ++y) {
+      Random rng(0, 0, 0, y, /*mix=*/0);
       for (int x = 0; x < kWidth; ++x) {
         double d = 0;
         for (int s = 0; s < kSamples; ++s) {
