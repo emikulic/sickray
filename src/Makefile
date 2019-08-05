@@ -28,7 +28,7 @@ $(ASMS): %.s: %.cc
 		-masm=intel -S -o $@ $<
 
 sickray: sickray.o show.o writepng.o
-	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -pthread -o $@
 
 disc_test: disc_test.o show.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@

@@ -1,8 +1,10 @@
 // Renders a sphere.
 // Right-handed coordinates.
 #include <unistd.h>
+#include <atomic>
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include "image.h"
@@ -21,10 +23,11 @@ int kMaxLevel = 2;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
 int runs = 1;
+int num_threads = 8;
 
 void ProcessOpts(int argc, char** argv) {
   int c;
-  while ((c = getopt(argc, argv, "w:h:s:o:b:l:x")) != -1) {
+  while ((c = getopt(argc, argv, "w:h:s:o:b:l:t:x")) != -1) {
     switch (c) {
       case 'w':
         kWidth = atoi(optarg);
@@ -44,6 +47,9 @@ void ProcessOpts(int argc, char** argv) {
         break;
       case 'l':
         kMaxLevel = atoi(optarg);
+        break;
+      case 't':
+        num_threads = atoi(optarg);
         break;
       case 'x':
         want_display = false;
@@ -120,31 +126,50 @@ vec3 RenderPixel(const Tracer* t, Random& rng, const Lookat& look_at, vec2 xy) {
   return t->Trace(rng, Ray{camera, proj - camera}, /*level=*/0);
 }
 
+void RendererThread(std::atomic<int>* line, const Lookat& look_at,
+                    const MyTracer& tracer, const Random& rng, Image* out) {
+  while (1) {
+    const int y = line->fetch_add(1, std::memory_order_acq_rel);
+    if (y >= kHeight) return;
+    double* ptr = out->data_.get() + y * out->width_ * 3;
+    Random rngy = rng.fork(y);
+    for (int x = 0; x < kWidth; ++x) {
+      // rngy.next();
+      Random rngx = rngy.fork(x);
+      vec3 color{0, 0, 0};
+      for (int s = 0; s < kSamples; ++s) {
+        // rngx.next();
+        Random rng = rngx.fork(s);
+        color += RenderPixel(&tracer, rng, look_at, vec2{x, y});
+      }
+      color /= kSamples;
+      ptr[0] = color.x;
+      ptr[1] = color.y;
+      ptr[2] = color.z;
+      ptr += 3;
+    }
+  }
+}
+
 Image Render() {
   Image out(kWidth, kHeight);
   const Lookat look_at(kCamera, kLookAt);
-  MyTracer t;
+  const MyTracer tracer;
+  const Random rng;
   for (int r = 0; r < runs; ++r) {
-    Random rng0;
-    double* ptr = out.data_.get();
+    std::atomic<int> line = 0;
     timespec t0 = Now();
-    for (int y = 0; y < kHeight; ++y) {
-      rng0.next();
-      Random rngy = rng0.fork(0);
-      for (int x = 0; x < kWidth; ++x) {
-        rngy.next();
-        Random rngx = rngy.fork(0);
-        vec3 color{0, 0, 0};
-        for (int s = 0; s < kSamples; ++s) {
-          rngx.next();
-          Random rng = rngx.fork(0);
-          color += RenderPixel(&t, rng, look_at, vec2{x, y});
-        }
-        color /= kSamples;
-        ptr[0] = color.x;
-        ptr[1] = color.y;
-        ptr[2] = color.z;
-        ptr += 3;
+    {
+      // Fork-join.
+      std::vector<std::thread> thr;
+      thr.reserve(num_threads);
+      for (int t = 0; t < num_threads; ++t) {
+        thr.emplace_back([&line, &look_at, &tracer, &rng, &out]() {
+          RendererThread(&line, look_at, tracer, rng, &out);
+        });
+      }
+      for (int t = 0; t < num_threads; ++t) {
+        thr[t].join();
       }
     }
     timespec t1 = Now();
