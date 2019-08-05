@@ -314,13 +314,13 @@ class BtmPlane : public Object {
 class Tracer {
  public:
   // Returns a color.
-  virtual vec3 Trace(Random& rng, const Ray& r, int level) const = 0;
+  virtual vec3 Trace(const Random& rng, const Ray& r, int level) const = 0;
 };
 
 class Shader {
  public:
-  vec3 Shade(Random& rng, const Tracer* t, const Object* obj, const Ray& r,
-             double dist, int level) const {
+  vec3 Shade(const Random& rng_in, const Tracer* t, const Object* obj,
+             const Ray& r, double dist, int level) const {
     if (light) {
       return color;
     }
@@ -332,6 +332,7 @@ class Shader {
       // Pick random direction.
       vec3 d;
       double shade;
+      Random rng = rng_in.fork(1);
       do {
         d = vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5};
         d = normalize(d);
@@ -339,13 +340,14 @@ class Shader {
       } while (shade <= 0);
 
       // Trace.
-      vec3 incoming = t->Trace(rng, Ray{p, d}, level + 1);
+      vec3 incoming = t->Trace(rng_in.fork(2), Ray{p, d}, level + 1);
       out += color * diffuse * shade * incoming;
     }
 
     if (reflection > 0) {
       // Perturb the normal to blur the reflection.
       double amount = 0.03;
+      Random rng = rng_in.fork(3);
       vec3 n2 =
           n + (vec3{rng.rand(), rng.rand(), rng.rand()} - vec3{.5, .5, .5}) *
                   amount;

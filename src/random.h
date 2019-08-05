@@ -44,7 +44,7 @@ class Random {
   }
 
   // Returns a new rng with the new mixin added.
-  Random fork(uint64_t mixin) {
+  Random fork(uint64_t mixin) const {
     Random out = *this;
     out.s[0] = mix(out.s[0], mixin);
     out.s[1] = mix(out.s[1], out.s[0]);

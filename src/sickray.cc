@@ -85,7 +85,7 @@ class MyTracer : public Tracer {
   MyTracer(const MyTracer&) = delete;
 
   // Returns color.
-  vec3 Trace(Random& rng, const Ray& r, int level) const override {
+  vec3 Trace(const Random& rng, const Ray& r, int level) const override {
     if (level > kMaxLevel) {
       // Terminate recursion.
       return vec3{0, 0, 0};
@@ -129,10 +129,15 @@ Image Render() {
     double* ptr = out.data_.get();
     timespec t0 = Now();
     for (int y = 0; y < kHeight; ++y) {
-      Random rng = rng0.fork(y);
+      rng0.next();
+      Random rngy = rng0.fork(0);
       for (int x = 0; x < kWidth; ++x) {
+        rngy.next();
+        Random rngx = rngy.fork(0);
         vec3 color{0, 0, 0};
         for (int s = 0; s < kSamples; ++s) {
+          rngx.next();
+          Random rng = rngx.fork(0);
           color += RenderPixel(&t, rng, look_at, vec2{x, y});
         }
         color /= kSamples;
