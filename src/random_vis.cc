@@ -12,7 +12,7 @@ namespace {
 
 int kWidth = 600;
 int kHeight = 400;
-int kSamples = 1;  // per pixel.
+int kSamples = 1;
 const char* opt_outfile = nullptr;  // Don't save.
 bool want_display = true;
 int runs = 1;
@@ -53,10 +53,15 @@ Image Render() {
     timespec t0 = Now();
     Random rng0;
     for (int y = 0; y < kHeight; ++y) {
-      Random rng = rng0.fork(y);
+      rng0.next();
+      Random rngy = rng0.fork(0);
       for (int x = 0; x < kWidth; ++x) {
+        rngy.next();
+        Random rngx = rngy.fork(0);
         double d = 0;
         for (int s = 0; s < kSamples; ++s) {
+          rngx.next();
+          Random rng = rngx.fork(0);
           d += rng.rand();
         }
         d /= kSamples;
