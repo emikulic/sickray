@@ -52,7 +52,7 @@ Image Render() {
     double* ptr = out.data_.get();
     timespec t0 = Now();
     for (int y = 0; y < kHeight; ++y) {
-      Random rng(0, 0, 0, y, /*mix=*/0);
+      Random rng(0, 0, 0, y);
       for (int x = 0; x < kWidth; ++x) {
         double d = 0;
         for (int s = 0; s < kSamples; ++s) {
