@@ -280,5 +280,5 @@ void Writepng(const Image& img, const char* filename) {
       dst += 3;
       src += 3;
     }
-  write_png(filename, w, h, data.get(), 100000);
+  write_png(filename, w, h, data.get(), 45455);
 }
