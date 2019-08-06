@@ -10,6 +10,7 @@ $ ./sickray
 
 ## Command Line Args
 |Flag|Description|Default|
+|----|-----------|-------|
 |-w|Width of the output image|600|
 |-h|Height of the output image|400|
 |-s|Number of samples per pixel|4|
