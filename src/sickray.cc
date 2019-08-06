@@ -1,5 +1,6 @@
 // Renders a sphere.
 // Right-handed coordinates.
+#include <signal.h>
 #include <unistd.h>
 #include <atomic>
 #include <iostream>
@@ -59,6 +60,10 @@ void ProcessOpts(int argc, char** argv) {
     }
   }
 }
+
+std::atomic<bool> running = true;
+
+void sigint_handler(int) { running.store(false, std::memory_order_relaxed); }
 
 // constexpr vec3 kCamera{-2.5, 1, 0};
 constexpr vec3 kCamera{-1, 1, 2};
@@ -159,6 +164,7 @@ void RendererThread(std::atomic<int>* line, const Lookat& look_at,
       ptr[1] = color.y;
       ptr[2] = color.z;
       ptr += 3;
+      if (!running.load(std::memory_order_relaxed)) return;
     }
   }
 }
@@ -194,6 +200,7 @@ Image Render() {
 
 int main(int argc, char** argv) {
   ProcessOpts(argc, argv);
+  signal(SIGINT, sigint_handler);
   Image img = Render();
   if (opt_outfile != nullptr) {
     Writepng(img, opt_outfile);
