@@ -387,7 +387,7 @@ class Shader {
   bool light = false;
 };
 
-class Scene {
+class Scene : public Tracer {
  public:
   struct Elem {
     Elem(Object* o, const Shader& s) : obj(o), shader(s) {}
@@ -399,6 +399,8 @@ class Scene {
     double dist;
     const Elem* elem;  // Miss = nullptr.
   };
+
+  Scene(int max_level) : max_level_(max_level) {}
 
   // Takes ownership of object.
   void AddElem(Object* o, const Shader& s) {
@@ -425,6 +427,19 @@ class Scene {
     AddElem(new BackPlane(xyz2.z, xyz1.xy(), xyz2.xy()), s);
   }
 
+  vec3 Trace(const Random& rng, const Ray& r, int level) const override {
+    if (level > max_level_) {
+      // Terminate recursion.
+      return vec3{0, 0, 0};
+    }
+    const Hit h = Intersect(r);
+    if (h.elem == nullptr) {
+      return {0, 0, 0};
+    }
+    return h.elem->shader.Shade(rng, this, h.elem->obj, r, h.dist, level);
+  }
+
+ private:
   Hit Intersect(const Ray& ray) const {
     Hit h{-1, nullptr};
     for (const auto& e : elems_) {
@@ -437,7 +452,6 @@ class Scene {
     return h;
   }
 
- private:
   // Does a hit before b?
   static bool Before(double a, double b) {
     if (a > 0 && b > 0 && a < b) return true;
@@ -447,4 +461,5 @@ class Scene {
 
   std::vector<Elem> elems_;
   std::vector<std::unique_ptr<Object>> objs_;
+  const int max_level_;
 };

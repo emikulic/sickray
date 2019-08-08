@@ -71,56 +71,39 @@ constexpr vec3 kLookAt{0, 1, 0};
 constexpr vec3 kFocus{0, 1, 0};
 constexpr double kAperture = 1. / 128;  // Amount of focal blur.
 
-class MyTracer : public Tracer {
+class MyScene : public Scene {
  public:
   // Set up scene.
-  MyTracer() {
+  MyScene() : Scene(kMaxLevel) {
     Shader wall = Shader().set_color({.9, .9, .9});  //.set_checker(true);
-    scene_.AddRoom({-3, 0, -3}, {3, 2, 3}, wall);
+    AddRoom({-3, 0, -3}, {3, 2, 3}, wall);
 
     Shader light = Shader().set_light(true);
-    // scene_.AddElem(new TopPlane(1.98, {-.2, -.9}, {1.6, .9}), light);
+    // AddElem(new TopPlane(1.98, {-.2, -.9}, {1.6, .9}), light);
 
     // Lights on the RHS.
     for (double z = -2.5; z < 3; ++z) {
-      scene_.AddElem(new RightPlane(2.98, {0.1, z + .1}, {1.5, z + .4}), light);
+      AddElem(new RightPlane(2.98, {0.1, z + .1}, {1.5, z + .4}), light);
     }
 
     // Some pillars.
     Shader pillar = Shader().set_color({.9, .9, .8});
-    scene_.AddBox({-3, 0, -3}, {-2, 2, -2}, pillar);
+    AddBox({-3, 0, -3}, {-2, 2, -2}, pillar);
 
     // Pillars on the RHS.
     for (double z = -3; z <= 3; ++z) {
-      scene_.AddBox({2.5, 0, z}, {3, 2, z + .5}, pillar);
+      AddBox({2.5, 0, z}, {3, 2, z + .5}, pillar);
     }
 
-    // scene_.AddBox({2, 0, -1}, {3, 2, 0}, pillar);
+    // AddBox({2, 0, -1}, {3, 2, 0}, pillar);
 
     // Still life.
-    scene_.AddBox({-.7, 0, 0}, {-.2, 0.5, .5}, Shader().set_color({1, 0, 0}));
+    AddBox({-.7, 0, 0}, {-.2, 0.5, .5}, Shader().set_color({1, 0, 0}));
     if (0)
-      scene_.AddElem(
+      AddElem(
           new Sphere({1., .5, .5}, .5),
           Shader().set_diffuse(.2).set_reflection(.8).set_color({.7, .8, .9}));
   }
-
-  MyTracer(const MyTracer&) = delete;
-
-  // Returns color.
-  vec3 Trace(const Random& rng, const Ray& r, int level) const override {
-    if (level > kMaxLevel) {
-      // Terminate recursion.
-      return vec3{0, 0, 0};
-    }
-    Scene::Hit h = scene_.Intersect(r);
-    if (h.elem == nullptr) {
-      return {0, 0, 0};
-    }
-    return h.elem->shader.Shade(rng, this, h.elem->obj, r, h.dist, level);
-  }
-
-  Scene scene_;
 };
 
 // Returns color.
@@ -144,7 +127,7 @@ vec3 RenderPixel(const Tracer* t, Random& rng, const Lookat& look_at, vec2 xy) {
 }
 
 void RendererThread(std::atomic<int>* line, const Lookat& look_at,
-                    const MyTracer& tracer, const Random& rng, Image* out) {
+                    const MyScene& scene, const Random& rng, Image* out) {
   while (1) {
     const int y = line->fetch_add(1, std::memory_order_acq_rel);
     if (y >= kHeight) return;
@@ -157,7 +140,7 @@ void RendererThread(std::atomic<int>* line, const Lookat& look_at,
       for (int s = 0; s < kSamples; ++s) {
         // rngx.next();
         Random rng = rngx.fork(s);
-        color += RenderPixel(&tracer, rng, look_at, vec2{x, y});
+        color += RenderPixel(&scene, rng, look_at, vec2{x, y});
       }
       color /= kSamples;
       ptr[0] = color.x;
@@ -172,7 +155,7 @@ void RendererThread(std::atomic<int>* line, const Lookat& look_at,
 Image Render() {
   Image out(kWidth, kHeight);
   const Lookat look_at(kCamera, kLookAt);
-  const MyTracer tracer;
+  const MyScene scene;
   const Random rng;
   for (int r = 0; r < runs; ++r) {
     std::atomic<int> line = 0;
@@ -182,8 +165,8 @@ Image Render() {
       std::vector<std::thread> thr;
       thr.reserve(num_threads);
       for (int t = 0; t < num_threads; ++t) {
-        thr.emplace_back([&line, &look_at, &tracer, &rng, &out]() {
-          RendererThread(&line, look_at, tracer, rng, &out);
+        thr.emplace_back([&line, &look_at, &scene, &rng, &out]() {
+          RendererThread(&line, look_at, scene, rng, &out);
         });
       }
       for (int t = 0; t < num_threads; ++t) {
