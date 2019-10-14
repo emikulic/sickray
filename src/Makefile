@@ -44,4 +44,5 @@ show_test: show_test.o show.o
 
 .PHONY: clean
 clean:
-	rm -f $(DEPS) $(OBJS) $(ASMS) sickray disc_test random_test show_test
+	rm -f $(DEPS) $(OBJS) $(ASMS) sickray disc_test random_test \
+		random_vis show_test
