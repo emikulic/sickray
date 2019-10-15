@@ -1,9 +1,9 @@
 // Example of show.cc.
-#include <cstring>
-#include <cmath>
-#include <memory>
-
 #include "show.h"
+
+#include <cmath>
+#include <cstring>
+#include <memory>
 
 int main() {
   const int w = 640;
@@ -23,7 +23,7 @@ int main() {
     for (int i = 100; i < 200; i++) {
       putpixel(i, j, 127, 127, 127);
 
-      uint8_t v = .5 + 255. * pow(.5, 1./2.2);
+      uint8_t v = .5 + 255. * pow(.5, 1. / 2.2);
       putpixel(i + 200, j, v, v, v);
     }
 

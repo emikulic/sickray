@@ -2,6 +2,7 @@
 // Right-handed coordinates.
 #include <signal.h>
 #include <unistd.h>
+
 #include <atomic>
 #include <iostream>
 #include <memory>

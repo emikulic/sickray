@@ -1,7 +1,6 @@
 // Copyright (c) 2013 Emil Mikulic <emikulic@gmail.com>
 // Show an image using xlib.
-#include <cstdio>
-#include <memory>
+#include "show.h"
 
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
@@ -10,8 +9,10 @@
 #include <X11/keysym.h>
 #include <err.h>
 
+#include <cstdio>
+#include <memory>
+
 #include "image.h"
-#include "show.h"
 
 namespace {
 
@@ -195,7 +196,7 @@ class Viewer {
 
   Viewer(const Viewer&) = delete;
 };
-}
+}  // namespace
 
 // data is 8bpp BGRA format.
 void Show(int width, int height, const void* data) {

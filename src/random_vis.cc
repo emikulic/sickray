@@ -1,5 +1,6 @@
 // Visualize randomness.
 #include <unistd.h>
+
 #include <iostream>
 
 #include "image.h"

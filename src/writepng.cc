@@ -12,6 +12,7 @@
 
 #include <arpa/inet.h>  // htonl()
 #include <err.h>
+
 #include <cassert>
 #include <cstdint>
 #include <memory>

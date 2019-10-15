@@ -1,8 +1,8 @@
 // Prints out random numbers.
 // Example usage: ./random_test | ministat
-#include <cstdio>
-
 #include "random.h"
+
+#include <cstdio>
 
 int main() {
   Random r;
