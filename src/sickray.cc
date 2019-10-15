@@ -1,4 +1,3 @@
-// Renders a sphere.
 // Right-handed coordinates.
 #include <signal.h>
 #include <unistd.h>
@@ -9,10 +8,10 @@
 #include <thread>
 #include <vector>
 
+#include "glviewer.h"
 #include "image.h"
 #include "random.h"
 #include "ray.h"
-#include "show.h"
 #include "time.h"
 #include "writepng.h"
 
@@ -128,11 +127,13 @@ vec3 RenderPixel(const Tracer* t, Random& rng, const Lookat& look_at, vec2 xy) {
 }
 
 void RendererThread(std::atomic<int>* line, const Lookat& look_at,
-                    const MyScene& scene, const Random& rng, Image* out) {
+                    const MyScene& scene, const Random& rng, Image* out,
+                    uint8_t* view_data) {
   while (1) {
     const int y = line->fetch_add(1, std::memory_order_acq_rel);
     if (y >= kHeight) return;
     double* ptr = out->data_.get() + y * out->width_ * 3;
+    uint8_t* vdptr = view_data + y * out->width_ * 4;
     Random rngy = rng.fork(y);
     for (int x = 0; x < kWidth; ++x) {
       // rngy.next();
@@ -148,6 +149,12 @@ void RendererThread(std::atomic<int>* line, const Lookat& look_at,
       ptr[1] = color.y;
       ptr[2] = color.z;
       ptr += 3;
+      if (view_data) {
+        vdptr[0] = Image::from_float(color.z);
+        vdptr[1] = Image::from_float(color.y);
+        vdptr[2] = Image::from_float(color.x);
+        vdptr += 4;
+      }
       if (!running.load(std::memory_order_relaxed)) return;
     }
   }
@@ -158,6 +165,22 @@ Image Render() {
   const Lookat look_at(kCamera, kLookAt);
   const MyScene scene;
   const Random rng;
+  std::unique_ptr<uint8_t[]> view_data;
+  std::unique_ptr<std::thread> view_thread;
+
+  if (want_display) {
+    view_data.reset(new uint8_t[kHeight * kWidth * 4]);
+    view_thread.reset(new std::thread([&view_data]() {
+      GLViewer::Open(kWidth, kHeight, view_data.get());
+      while (GLViewer::IsRunning() && running) {
+        GLViewer::Poll();
+        GLViewer::Update();
+      }
+      running = false;
+      GLViewer::Close();
+    }));
+  }
+
   for (int r = 0; r < runs; ++r) {
     std::atomic<int> line = 0;
     timespec t0 = Now();
@@ -166,8 +189,8 @@ Image Render() {
       std::vector<std::thread> thr;
       thr.reserve(num_threads);
       for (int t = 0; t < num_threads; ++t) {
-        thr.emplace_back([&line, &look_at, &scene, &rng, &out]() {
-          RendererThread(&line, look_at, scene, rng, &out);
+        thr.emplace_back([&line, &look_at, &scene, &rng, &out, &view_data]() {
+          RendererThread(&line, look_at, scene, rng, &out, view_data.get());
         });
       }
       for (int t = 0; t < num_threads; ++t) {
@@ -177,6 +200,8 @@ Image Render() {
     timespec t1 = Now();
     std::cout << t1 - t0 << " sec" << std::endl;  // Flush.
   }
+
+  if (view_thread != nullptr) view_thread->join();
   return out;
 }
 
@@ -188,8 +213,5 @@ int main(int argc, char** argv) {
   Image img = Render();
   if (opt_outfile != nullptr) {
     Writepng(img, opt_outfile);
-  }
-  if (want_display) {
-    Show(img);
   }
 }

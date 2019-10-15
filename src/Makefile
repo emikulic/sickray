@@ -27,8 +27,8 @@ $(ASMS): %.s: %.cc
 	$(CXX) $(CXXFLAGS) $(MKDEP) -g0 -fno-asynchronous-unwind-tables \
 		-masm=intel -S -o $@ $<
 
-sickray: sickray.o show.o writepng.o
-	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -pthread -o $@
+sickray: sickray.o glviewer.o writepng.o
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -lGL -pthread -o $@
 
 disc_test: disc_test.o show.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
