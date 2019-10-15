@@ -5,7 +5,7 @@ CXXFLAGS=-g1 -std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
 # While compiling, produce a .d (depends) file.
 MKDEP=-MMD -MT "$(<:.cc=.o) $(<:.cc=.s)"
 
-all: sickray disc_test random_test random_vis show_test
+all: sickray disc_test glviewer_test random_test random_vis show_test
 .PHONY: all
 
 # Automatically find sources.
@@ -32,6 +32,9 @@ sickray: sickray.o show.o writepng.o
 
 disc_test: disc_test.o show.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -o $@
+
+glviewer_test: glviewer_test.o glviewer.o
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lX11 -lGL -pthread -o $@
 
 random_test: random_test.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -o $@
