@@ -52,12 +52,22 @@ struct vec2 {
   friend vec2 operator*(double d, const vec2& v) { return v * d; }
 
   // Returns a uniformly distributed random point within the unit circle.
+  // Does this by generating points in a square, until one falls inside the
+  // circle.
   static vec2 uniform_disc(Random& rng) {
     vec2 v;
     do {
       v = 2 * (vec2{rng.rand(), rng.rand()} - vec2{.5, .5});
     } while ((v.x * v.x + v.y * v.y) > 1.);
     return v;
+  }
+
+  // Returns a uniformly distributed random point within the unit circle.
+  // Does this by generating a random angle and radius.
+  static vec2 uniform_disc2(Random& rng) {
+    double a = 2 * M_PI * rng.rand();
+    double r = sqrt(rng.rand());
+    return vec2{r * cos(a), r * sin(a)};
   }
 
   double x, y;
