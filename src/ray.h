@@ -67,7 +67,23 @@ struct vec2 {
   static vec2 uniform_disc2(Random& rng) {
     double a = 2 * M_PI * rng.rand();
     double r = sqrt(rng.rand());
-    return vec2{r * cos(a), r * sin(a)};
+    return r * vec2{cos(a), sin(a)};
+  }
+
+  // Returns a uniformly distributed random point within the unit circle.
+  // Uses the concentric mapping from:
+  // http://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations.html
+  static vec2 uniform_disc3(Random& rng) {
+    vec2 v = 2 * (vec2{rng.rand(), rng.rand()} - vec2{.5, .5});
+    double a, r;
+    if (fabs(v.x) > fabs(v.y)) {
+      r = v.x;
+      a = (M_PI / 4) * (v.y / v.x);
+    } else {
+      r = v.y;
+      a = (M_PI / 2) - ((M_PI / 4) * (v.x / v.y));
+    }
+    return r * vec2{cos(a), sin(a)};
   }
 
   double x, y;
