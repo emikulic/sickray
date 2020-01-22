@@ -6,7 +6,7 @@ CXXFLAGS=-g1 -std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
 MKDEP=-MMD -MT "$(<:.cc=.o) $(<:.cc=.s)"
 
 all: sickray disc_test glviewer_test random_test random_vis show_test \
-	disc_benchmark
+	disc_benchmark random_benchmark
 .PHONY: all
 
 # Automatically find sources.
@@ -49,7 +49,10 @@ show_test: show_test.o show.o
 disc_benchmark: disc_benchmark.o
 	$(CCACHE) $(CXX) $(CFLAGS) $^ -lbenchmark -o $@
 
+random_benchmark: random_benchmark.o
+	$(CCACHE) $(CXX) $(CFLAGS) $^ -lbenchmark -o $@
+
 .PHONY: clean
 clean:
 	rm -f $(DEPS) $(OBJS) $(ASMS) sickray disc_test glviewer_test \
-		random_test random_vis show_test disc_benchmark
+		random_test random_vis show_test disc_benchmark random_benchmark
