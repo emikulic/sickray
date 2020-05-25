@@ -1,4 +1,4 @@
-// Benchmarks of uniform_disc() functions.
+// Benchmarks of random number generator.
 #include <benchmark/benchmark.h>
 
 #include "random.h"
