@@ -1,4 +1,4 @@
-CCACHE=ccache
+CCACHE:=$(shell which ccache)
 CXX=g++
 CXXFLAGS=-g1 -std=c++17 -O3 -march=native -ffast-math -fno-exceptions\
  --all-warnings -fdiagnostics-color -Wno-narrowing -Wno-sign-compare
